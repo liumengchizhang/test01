@@ -1,0 +1,27 @@
+{%- liquid
+  # Use the oldest remaining cart line so adding a recommendation keeps the same collection.
+  assign also_like = cart.items.last.product.metafields.custom.alsolike
+  if also_like != blank
+    case also_like.type
+      when 'collection_reference'
+        assign recommended_collection = also_like.value
+      when 'list.collection_reference'
+        assign recommended_collection = also_like.value | first
+      when 'single_line_text_field', 'string', nil
+        assign collection_handle = also_like.value | default: also_like | strip
+        assign recommended_collection = collections[collection_handle]
+    endcase
+  endif
+
+  if recommended_collection.products_count == blank or recommended_collection.products_count == 0
+    assign recommended_collection = cart_settings.mobile_recommendations_collection | default: collections['all-knives']
+  endif
+  assign accessories_collection = cart_settings.mobile_accessories_collection | default: collections['magnetic-knife-storage']
+  assign recommendations_heading = 'content.mobile_cart.recommendations' | t
+  assign accessories_heading = 'content.mobile_cart.accessories' | t
+-%}
+
+{%- render 'cart-mobile-carousel', collection: recommended_collection, heading: recommendations_heading, id: 'recommendations' -%}
+{%- if accessories_collection.handle != recommended_collection.handle -%}
+  {%- render 'cart-mobile-carousel', collection: accessories_collection, heading: accessories_heading, id: 'accessories' -%}
+{%- endif -%}

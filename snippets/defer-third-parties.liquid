@@ -1,0 +1,151 @@
+{% doc %}
+  Prints Shopify's content_for_header, keeping every tracker, and marks non-critical
+  app scripts so they do not run until consent, first interaction, or idle.
+  Conversion pixels that live in the web pixel manager, and the Parkour Facebook
+  pixel app embed, are left untouched so they can load earlier.
+
+  @param {string} content_for_header_raw - Captured content_for_header markup
+{% enddoc %}
+
+{%- liquid
+  assign header_markup = content_for_header_raw
+  if request.design_mode
+    echo header_markup
+  else
+    assign header_parts = header_markup | split: '<!-- BEGIN app block:'
+    assign rebuilt_header = ''
+    for part in header_parts
+      if forloop.first
+        assign rebuilt_header = part
+        continue
+      endif
+
+      assign defer_kind = ''
+      if part contains 'microsoft-clarity' or part contains 'klaviyo-email-marketing'
+        assign defer_kind = 'analytics'
+      elsif part contains 'judge-me' or part contains 'cwilltrustoo' or part contains 'google-youtube' or part contains 'merchantwidget'
+        assign defer_kind = 'widget'
+      endif
+
+      assign block_body = part
+      assign after_block = ''
+      if part contains '<!-- END app block -->'
+        assign block_segments = part | split: '<!-- END app block -->'
+        assign block_body = block_segments | first
+        assign after_block = part | remove_first: block_body | remove_first: '<!-- END app block -->'
+      endif
+
+      if defer_kind != blank
+        assign deferred_script_open = '<script type="text/huusk-deferred" data-huusk-defer="' | append: defer_kind | append: '"'
+        assign block_body = block_body | replace: '<script', deferred_script_open
+      endif
+
+      assign rebuilt_header = rebuilt_header | append: '<!-- BEGIN app block:' | append: block_body
+      if part contains '<!-- END app block -->'
+        assign rebuilt_header = rebuilt_header | append: '<!-- END app block -->' | append: after_block
+      endif
+    endfor
+
+    assign rebuilt_header = rebuilt_header | replace: 'seal-review.min.js" defer', 'seal-review.min.js" type="text/huusk-deferred" data-huusk-defer="widget"'
+    assign rebuilt_header = rebuilt_header | replace: 'assets/loader.js" type="text/javascript"', 'assets/loader.js" type="text/huusk-deferred" data-huusk-defer="widget"'
+    echo rebuilt_header
+  endif
+-%}
+<script>
+  (function () {
+    if (window.Shopify && Shopify.designMode) return;
+
+    var released = { analytics: false, widget: false };
+    var watched = /seal-review|cwilltrustoo|cdn\.judge\.me|cdnwidget\.judge\.me|clarity\.ms|static\.klaviyo\.com|merchantwidget\.js/i;
+
+    function watchInjectedScripts() {
+      var observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          Array.prototype.forEach.call(mutation.addedNodes, function (node) {
+            if (!node || node.tagName !== 'SCRIPT' || !node.src || node.getAttribute('data-huusk-defer')) return;
+            if (!watched.test(node.src)) return;
+            var kind = /clarity\.ms|klaviyo/i.test(node.src) ? 'analytics' : 'widget';
+            if (released[kind]) return;
+            var hold = document.createElement('script');
+            hold.type = 'text/huusk-deferred';
+            hold.setAttribute('data-huusk-defer', kind);
+            hold.src = node.src;
+            node.replaceWith(hold);
+          });
+        });
+      });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+    }
+
+    watchInjectedScripts();
+
+    function consentState() {
+      try {
+        var privacy = window.Shopify && Shopify.customerPrivacy;
+        if (!privacy || typeof privacy.analyticsProcessingAllowed !== 'function') return 'unknown';
+        var analytics = privacy.analyticsProcessingAllowed();
+        var marketing = typeof privacy.marketingAllowed === 'function' ? privacy.marketingAllowed() : analytics;
+        if (analytics || marketing) return 'granted';
+        return 'denied';
+      } catch (error) {
+        return 'unknown';
+      }
+    }
+
+    function seenKey(node) {
+      if (node.src) return 'src:' + node.src;
+      var text = (node.textContent || '').replace(/\s+/g, ' ').trim();
+      var clarity = text.match(/"clarity",\s*"script",\s*"([^"]+)"/);
+      if (clarity) return 'clarity:' + clarity[1];
+      return 'inline:' + text.slice(0, 180);
+    }
+
+    function revive(kind) {
+      if (released[kind]) return;
+      if (kind === 'analytics' && consentState() === 'denied') return;
+      released[kind] = true;
+
+      var nodes = document.querySelectorAll('script[type="text/huusk-deferred"][data-huusk-defer="' + kind + '"]');
+      var seen = Object.create(null);
+      nodes.forEach(function (oldNode) {
+        var key = seenKey(oldNode);
+        if (seen[key]) {
+          oldNode.remove();
+          return;
+        }
+        seen[key] = true;
+
+        var script = document.createElement('script');
+        Array.prototype.forEach.call(oldNode.attributes, function (attr) {
+          if (attr.name === 'type' || attr.name === 'data-huusk-defer') return;
+          script.setAttribute(attr.name, attr.value);
+        });
+        if (oldNode.src) script.src = oldNode.src;
+        else script.text = oldNode.textContent;
+        oldNode.parentNode.insertBefore(script, oldNode);
+        oldNode.remove();
+      });
+    }
+
+    function releaseAll() {
+      revive('widget');
+      revive('analytics');
+    }
+
+    function arm() {
+      ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (eventName) {
+        window.addEventListener(eventName, releaseAll, { once: true, passive: true });
+      });
+      var idle = window.requestIdleCallback || function (callback) { return setTimeout(callback, 2000); };
+      idle(function () { setTimeout(releaseAll, 1200); }, { timeout: 4000 });
+      document.addEventListener('visitorConsentCollected', releaseAll);
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arm);
+    else arm();
+  })();
+</script>
+
+
+
+

@@ -1,0 +1,181 @@
+{% doc %}
+  @prompt
+    类似过滤和排序的模块，要求在整个组的左边
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-collection-sidebar-{{ ai_gen_id }} {
+    display: block;
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    color: {{ block.settings.text_color }};
+    background: {{ block.settings.background_color }};
+    border: 1px solid {{ block.settings.border_color }};
+    padding: 22px;
+    box-sizing: border-box;
+  }
+
+  .ai-collection-sidebar__title-{{ ai_gen_id }} {
+    margin: 0 0 22px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: .04em;
+  }
+
+  .ai-collection-sidebar__group-{{ ai_gen_id }} {
+    border-top: 1px solid {{ block.settings.border_color }};
+    padding: 16px 0;
+  }
+
+  .ai-collection-sidebar__heading-{{ ai_gen_id }} {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .ai-collection-sidebar__option-{{ ai_gen_id }} {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 6px 0;
+    font-size: 14px;
+    line-height: 1.4;
+    cursor: pointer;
+  }
+
+  .ai-collection-sidebar__option-{{ ai_gen_id }} input {
+    width: 16px;
+    height: 16px;
+    margin: 1px 0 0;
+    accent-color: {{ block.settings.accent_color }};
+    flex: 0 0 auto;
+  }
+
+  .ai-collection-sidebar__count-{{ ai_gen_id }} {
+    margin-left: auto;
+    color: {{ block.settings.muted_color }};
+    font-size: 12px;
+  }
+
+  .ai-collection-sidebar__select-{{ ai_gen_id }} {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 10px;
+    color: {{ block.settings.text_color }};
+    background: {{ block.settings.background_color }};
+    border: 1px solid {{ block.settings.border_color }};
+    border-radius: 0;
+  }
+
+  .ai-collection-sidebar__actions-{{ ai_gen_id }} {
+    display: grid;
+    gap: 12px;
+    padding-top: 16px;
+  }
+
+  .ai-collection-sidebar__submit-{{ ai_gen_id }} {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid {{ block.settings.accent_color }};
+    background: {{ block.settings.accent_color }};
+    color: {{ block.settings.button_text_color }};
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .ai-collection-sidebar__clear-{{ ai_gen_id }} {
+    color: {{ block.settings.text_color }};
+    font-size: 13px;
+    text-align: center;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-collection-sidebar-{{ ai_gen_id }} {
+      width: 100%;
+      padding: 18px;
+    }
+  }
+{% endstyle %}
+
+<aside class="ai-collection-sidebar-{{ ai_gen_id }}" {{ block.shopify_attributes }} aria-label="{{ block.settings.heading | escape }}">
+  {% if block.settings.heading != blank %}
+    <h2 class="ai-collection-sidebar__title-{{ ai_gen_id }}">{{ block.settings.heading | escape }}</h2>
+  {% endif %}
+  {% if collection != blank %}
+    <form action="{{ collection.url }}" method="get">
+      {% if collection.sort_options.size > 0 %}
+        <div class="ai-collection-sidebar__group-{{ ai_gen_id }}">
+          <label class="ai-collection-sidebar__heading-{{ ai_gen_id }}" for="Sort-{{ ai_gen_id }}">{{ block.settings.sort_label | escape }}</label>
+          <select id="Sort-{{ ai_gen_id }}" class="ai-collection-sidebar__select-{{ ai_gen_id }}" name="sort_by" aria-label="{{ block.settings.sort_label | escape }}">
+            {% for option in collection.sort_options %}
+              <option value="{{ option.value | escape }}"{% if collection.sort_by == option.value %} selected{% endif %}>{{ option.name | escape }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+      {% for filter in collection.filters %}
+        <fieldset class="ai-collection-sidebar__group-{{ ai_gen_id }}" style="border-left: 0; border-right: 0; border-bottom: 0; margin: 0; padding-left: 0; padding-right: 0;">
+          <legend class="ai-collection-sidebar__heading-{{ ai_gen_id }}">{{ filter.label | escape }}</legend>
+          {% case filter.type %}
+            {% when 'list' %}
+              {% for value in filter.values %}
+                <label class="ai-collection-sidebar__option-{{ ai_gen_id }}">
+                  <input type="checkbox" name="{{ value.param_name | escape }}" value="{{ value.value | escape }}"{% if value.active %} checked{% endif %}{% if value.count == 0 and value.active == false %} disabled{% endif %}>
+                  <span>{{ value.label | escape }}</span>
+                  <span class="ai-collection-sidebar__count-{{ ai_gen_id }}">{{ value.count }}</span>
+                </label>
+              {% endfor %}
+            {% when 'boolean' %}
+              {% for value in filter.values %}
+                <label class="ai-collection-sidebar__option-{{ ai_gen_id }}">
+                  <input type="checkbox" name="{{ value.param_name | escape }}" value="{{ value.value | escape }}"{% if value.active %} checked{% endif %}>
+                  <span>{{ value.label | escape }}</span>
+                  <span class="ai-collection-sidebar__count-{{ ai_gen_id }}">{{ value.count }}</span>
+                </label>
+              {% endfor %}
+            {% when 'price_range' %}
+              <label class="ai-collection-sidebar__option-{{ ai_gen_id }}" for="PriceMin-{{ ai_gen_id }}">{{ block.settings.minimum_price | escape }} ({{ cart.currency.symbol }})</label>
+              <input class="ai-collection-sidebar__select-{{ ai_gen_id }}" id="PriceMin-{{ ai_gen_id }}" type="number" name="{{ filter.min_value.param_name }}" min="0" placeholder="0" value="{% if filter.min_value.value %}{{ filter.min_value.value | money_without_currency | replace: ',', '' }}{% endif %}">
+              <label class="ai-collection-sidebar__option-{{ ai_gen_id }}" for="PriceMax-{{ ai_gen_id }}">{{ block.settings.maximum_price | escape }} ({{ cart.currency.symbol }})</label>
+              <input class="ai-collection-sidebar__select-{{ ai_gen_id }}" id="PriceMax-{{ ai_gen_id }}" type="number" name="{{ filter.max_value.param_name }}" min="0" placeholder="{{ filter.range_max | money_without_currency | replace: ',', '' }}" value="{% if filter.max_value.value %}{{ filter.max_value.value | money_without_currency | replace: ',', '' }}{% endif %}">
+            {% endcase %}
+        </fieldset>
+      {% endfor %}
+      <div class="ai-collection-sidebar__actions-{{ ai_gen_id }}">
+        <button class="ai-collection-sidebar__submit-{{ ai_gen_id }}" type="submit">{{ block.settings.apply_label | escape }}</button>
+        {% if collection.url != blank %}<a class="ai-collection-sidebar__clear-{{ ai_gen_id }}" href="{{ collection.url }}">{{ block.settings.clear_label | escape }}</a>{% endif %}
+      </div>
+    </form>
+  {% else %}
+    <p>{{ block.settings.empty_message | escape }}</p>
+  {% endif %}
+</aside>
+
+{% schema %}
+{
+  "name": "Collection filter sidebar",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Refine your selection" },
+    { "type": "text", "id": "sort_label", "label": "Sort label", "default": "Sort by" },
+    { "type": "text", "id": "minimum_price", "label": "Minimum price label", "default": "From" },
+    { "type": "text", "id": "maximum_price", "label": "Maximum price label", "default": "To" },
+    { "type": "text", "id": "apply_label", "label": "Apply button", "default": "Apply filters" },
+    { "type": "text", "id": "clear_label", "label": "Clear link", "default": "Clear all filters" },
+    { "type": "text", "id": "empty_message", "label": "Fallback message", "default": "Add this block to a collection page to show filters." },
+    { "type": "range", "id": "desktop_width_percent", "label": "Desktop width", "min": 50, "max": 100, "step": 5, "unit": "%", "default": 100 },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#1A1A1A" },
+    { "type": "color", "id": "muted_color", "label": "Secondary text", "default": "#595959" },
+    { "type": "color", "id": "background_color", "label": "Background", "default": "#FFFFFF" },
+    { "type": "color", "id": "border_color", "label": "Borders", "default": "#D9D9D9" },
+    { "type": "color", "id": "accent_color", "label": "Accent", "default": "#1A1A1A" },
+    { "type": "color", "id": "button_text_color", "label": "Button text", "default": "#FFFFFF" }
+  ],
+  "presets": [{ "name": "Collection filter sidebar" }],
+  "tag": null,
+  "class": "collection-filter-sidebar"
+}
+{% endschema %}

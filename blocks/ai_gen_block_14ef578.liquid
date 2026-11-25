@@ -1,0 +1,161 @@
+{% doc %}
+  @prompt
+    分期, 不要说明文字，要直接计算的结果, 四期免息分期，或每月￥5.42, 要英文，4 INTEREST-FREE
+    INSTALLMENTS, OR
+    FROM $5.42/MO WITH，按照这个计算方法生成可以根据价格自动计算的模块, 给我的价格不对，利息没有算上, 增加字号调整按钮
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+{% assign installment_price = product.selected_or_first_available_variant.price | default: 0 %}
+{% assign four_pay_amount = installment_price | divided_by: 4 %}
+
+{% style %}
+  .ai-payments-{{ ai_gen_id }} {
+    display: block;
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    box-sizing: border-box;
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.font_size }}px;
+    line-height: 1.45;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .ai-payments-{{ ai_gen_id }}__line {
+    display: block;
+  }
+
+  .ai-payments-{{ ai_gen_id }}__amount {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+{% endstyle %}
+
+<installment-pricing-{{ ai_gen_id }}
+  class="ai-payments-{{ ai_gen_id }}"
+  data-price="{{ installment_price }}"
+  data-currency="{{ cart.currency.iso_code | default: shop.currency }}"
+  data-term="{{ block.settings.monthly_term }}"
+  data-apr="{{ block.settings.apr_percent }}"
+  data-locale="{{ request.locale.iso_code | default: 'en-US' }}"
+  {{ block.shopify_attributes }}
+>
+  {% if product != blank %}
+    <span class="ai-payments-{{ ai_gen_id }}__line">4 INTEREST-FREE INSTALLMENTS OF <span class="ai-payments-{{ ai_gen_id }}__amount" data-four-pay>{{ four_pay_amount | money }}</span>, OR</span>
+    <span class="ai-payments-{{ ai_gen_id }}__line">FROM <span class="ai-payments-{{ ai_gen_id }}__amount" data-monthly></span>/MO WITH {{ block.settings.provider_name | escape }}</span>
+  {% endif %}
+</installment-pricing-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    const tagName = 'installment-pricing-{{ ai_gen_id }}';
+    if (customElements.get(tagName)) return;
+
+    class InstallmentPricing extends HTMLElement {
+      connectedCallback() {
+        this.onVariantChange = this.onVariantChange.bind(this);
+        document.addEventListener('variant:change', this.onVariantChange);
+        this.updateAmounts(Number(this.dataset.price));
+      }
+
+      disconnectedCallback() {
+        document.removeEventListener('variant:change', this.onVariantChange);
+      }
+
+      onVariantChange(event) {
+        const variant = event.detail && (event.detail.variant || event.detail);
+        if (variant && typeof variant.price === 'number') {
+          this.dataset.price = variant.price;
+          this.updateAmounts(variant.price);
+        }
+      }
+
+      updateAmounts(price) {
+        if (!Number.isFinite(price)) return;
+        const term = Number(this.dataset.term) || 12;
+        const apr = Number(this.dataset.apr) || 0;
+        const monthlyRate = apr / 100 / 12;
+        const payment = monthlyRate === 0
+          ? price / term
+          : price * monthlyRate / (1 - Math.pow(1 + monthlyRate, -term));
+        const formatter = new Intl.NumberFormat(this.dataset.locale || 'en-US', {
+          style: 'currency',
+          currency: this.dataset.currency || 'USD'
+        });
+        const monthlyElement = this.querySelector('[data-monthly]');
+        if (monthlyElement) monthlyElement.textContent = formatter.format(Math.round(payment) / 100);
+      }
+    }
+
+    customElements.define(tagName, InstallmentPricing);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Installment pricing",
+  "settings": [
+    {
+      "type": "text",
+      "id": "provider_name",
+      "label": "Provider name",
+      "default": "AFFIRM"
+    },
+    {
+      "type": "select",
+      "id": "monthly_term",
+      "label": "Monthly term",
+      "options": [
+        { "value": "6", "label": "6 months" },
+        { "value": "12", "label": "12 months" },
+        { "value": "18", "label": "18 months" },
+        { "value": "24", "label": "24 months" }
+      ],
+      "default": "12"
+    },
+    {
+      "type": "range",
+      "id": "apr_percent",
+      "label": "APR",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "%",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "Desktop width",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#222222"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Installment pricing"
+    }
+  ],
+  "tag": null,
+  "class": "installment-pricing-block"
+}
+{% endschema %}

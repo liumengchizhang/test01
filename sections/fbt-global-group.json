@@ -1,0 +1,175 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "name": "FBT 全局搭配",
+  "type": "custom.fbt",
+  "sections": {
+    "fbtglobalregistry": {
+      "type": "fbt-global-rules",
+      "blocks": {
+        "pairingrule1": {
+          "type": "pairing_rule",
+          "settings": {
+            "target_products": [
+              "huusk-10-piece-japanese-style-knife-set"
+            ],
+            "companion_products": [
+              "marble-base-double-sided-magnetic-knife-stand",
+              "huusk-heavy-duty-poultry-shears"
+            ]
+          }
+        },
+        "pairingrule2": {
+          "type": "pairing_rule",
+          "settings": {
+            "target_products": [
+              "huusk-heavy-duty-poultry-shears"
+            ],
+            "companion_products": [
+              "huusk-3-piece-hand-forged-knife-set",
+              "marble-base-double-sided-magnetic-knife-stand"
+            ]
+          }
+        },
+        "pairing_rule_66iYGz": {
+          "type": "pairing_rule",
+          "settings": {
+            "target_products": [
+              "huusk-hand-forged-utility-knife"
+            ],
+            "companion_products": [
+              "huusk-leather-knife-sheath"
+            ]
+          }
+        },
+        "pairing_rule_R7dLqx": {
+          "type": "pairing_rule",
+          "settings": {
+            "target_products": [
+              "huusk-hand-forged-chef-knife"
+            ],
+            "companion_products": [
+              "huusk-hand-forged-utility-knife",
+              "feather-knife-with-wood-sheath"
+            ]
+          }
+        },
+        "pairing_rule_hDyWez": {
+          "type": "pairing_rule",
+          "settings": {
+            "target_products": [
+              "double-sided-acacia-resin-magnetic-knife-block"
+            ],
+            "companion_products": [
+              "3-piece-damascus-steel-kitchen-knife-set-with-sheath"
+            ]
+          }
+        },
+        "pairing_rule_VBzynU": {
+          "type": "pairing_rule",
+          "settings": {
+            "target_products": [
+              "marble-base-double-sided-magnetic-knife-stand"
+            ],
+            "companion_products": [
+              "huusk-heavy-duty-poultry-shears",
+              "huusk-3-piece-hand-forged-knife-set"
+            ]
+          }
+        },
+        "pairing_rule_LQ3VWR": {
+          "type": "pairing_rule",
+          "settings": {
+            "target_products": [
+              "3-piece-damascus-steel-kitchen-knife-set-with-sheath"
+            ],
+            "companion_products": [
+              "double-sided-acacia-resin-magnetic-knife-block"
+            ]
+          }
+        },
+        "pairing_rule_JyEYM4": {
+          "type": "pairing_rule",
+          "settings": {
+            "target_products": [
+              "huusk-4-piece-butcher-knife-set"
+            ],
+            "companion_products": [
+              "marble-base-double-sided-magnetic-knife-stand",
+              "huusk-heavy-duty-poultry-shears"
+            ]
+          }
+        },
+        "pairing_rule_QAVhAR": {
+          "type": "pairing_rule",
+          "settings": {
+            "target_products": [
+              "feather-knife-with-wood-sheath"
+            ],
+            "companion_products": [
+              "huusk-3-piece-hand-forged-knife-set"
+            ]
+          }
+        },
+        "pairing_rule_69eDXF": {
+          "type": "pairing_rule",
+          "settings": {
+            "target_products": [
+              "huusk-3-piece-hand-forged-knife-set"
+            ],
+            "companion_products": [
+              "marble-base-double-sided-magnetic-knife-stand",
+              "huusk-heavy-duty-poultry-shears"
+            ]
+          }
+        },
+        "pairing_rule_dev_remainder": {
+          "type": "pairing_rule",
+          "settings": {
+            "target_products": [
+              "14-piece-black-kitchen-knife-set-acacia-block",
+              "14-piece-kitchen-knife-set-wooden-block",
+              "5-piece-orange-butcher-knife-set-with-roll-bag-huusk",
+              "folding-kitchen-knife-collection"
+            ],
+            "companion_products": [
+              "double-sided-acacia-resin-magnetic-knife-block",
+              "huusk-heavy-duty-poultry-shears"
+            ]
+          }
+        }
+      },
+      "block_order": [
+        "pairing_rule_66iYGz",
+        "pairing_rule_R7dLqx",
+        "pairing_rule_hDyWez",
+        "pairing_rule_VBzynU",
+        "pairing_rule_LQ3VWR",
+        "pairing_rule_JyEYM4",
+        "pairing_rule_QAVhAR",
+        "pairing_rule_69eDXF",
+        "pairing_rule_dev_remainder",
+        "pairingrule1",
+        "pairingrule2"
+      ],
+      "settings": {
+        "heading": "Frequently Bought Together",
+        "total_label": "Total price",
+        "button_label": "ADD TO CART",
+        "offer_summary": "Buy 2, save 10% · Buy 3, save 15% · Buy 4+, save 20%",
+        "two_offer_note": "10% OFF eligible items",
+        "three_offer_note": "15% OFF eligible items"
+      }
+    }
+  },
+  "order": [
+    "fbtglobalregistry"
+  ]
+}

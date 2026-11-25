@@ -1,0 +1,8 @@
+{%- if settings.show_floating_icons -%}
+  {%- render 'floating-icons' -%}
+  {{ 'floating-icons.css' | asset_url | stylesheet_tag }}
+  {% comment %} floating-icons.js is loaded from deferred-theme-assets {% endcomment %}
+{%- endif -%}
+
+
+

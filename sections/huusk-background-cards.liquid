@@ -1,0 +1,1084 @@
+{%- liquid
+  assign background_image = section.settings.background_image
+  assign panel_opacity = section.settings.panel_opacity | divided_by: 100.0
+-%}
+
+<section
+  id="HuuskCards-{{ section.id }}"
+  class="huusk-cards"
+  style="
+    --hc-height: {{ section.settings.min_height }}px;
+    --hc-height-mobile: {{ section.settings.mobile_min_height }}px;
+    --hc-panel-width: {{ section.settings.panel_width }}px;
+    --hc-panel-radius: {{ section.settings.panel_radius }}px;
+    --hc-card-radius: {{ section.settings.card_radius }}px;
+    --hc-card-width: {{ section.settings.card_width }}px;
+    --hc-gap: {{ section.settings.card_gap }}px;
+    --hc-panel-bg: {{ section.settings.panel_color | color_modify: 'alpha', panel_opacity }};
+  "
+>
+  {% if background_image != blank %}
+    <div class="huusk-cards__background" aria-hidden="true">
+      {{
+        background_image
+        | image_url: width: 2400
+        | image_tag:
+          widths: '480, 750, 1100, 1500, 2000, 2400',
+          sizes: '100vw',
+          loading: 'lazy',
+          alt: ''
+      }}
+    </div>
+  {% endif %}
+
+  <div class="huusk-cards__panel">
+    <div
+      class="huusk-cards__list"
+      tabindex="0"
+      role="region"
+      aria-label="{{ section.settings.accessibility_label | escape }}"
+    >
+      {% for block in section.blocks %}
+        <article
+          class="huusk-cards__card"
+          {{ block.shopify_attributes }}
+        >
+          {%- liquid
+            assign desktop_image = block.settings.image | default: block.settings.image_mobile
+            assign mobile_image = block.settings.image_mobile | default: desktop_image
+          -%}
+
+          {% if desktop_image != blank %}
+            <picture class="huusk-cards__picture">
+             <source
+              media="(max-width: 749px)"
+              srcset="
+                 {{ mobile_image | image_url: width: 320 }} 320w,
+                 {{ mobile_image | image_url: width: 480 }} 480w,
+                 {{ mobile_image | image_url: width: 750 }} 750w,
+                 {{ mobile_image | image_url: width: 1100 }} 1100w
+               "
+              sizes="100vw"
+              width="{{ mobile_image.width }}"
+              height="{{ mobile_image.height }}"
+             >
+
+             {{
+             desktop_image
+             | image_url: width: 2000
+             | image_tag:
+               widths: '320, 480, 750, 1100, 1500, 2000',
+               sizes: '100vw',
+               loading: 'lazy',
+               class: 'huusk-cards__image'
+             }}
+           </picture>
+          {% else %}
+           {{ 'image' | placeholder_svg_tag: 'huusk-cards__image huusk-cards__placeholder' }}
+         {% endif %}
+
+
+          {% if block.settings.heading != blank or block.settings.caption != blank %}
+            <div class="huusk-cards__shade" aria-hidden="true"></div>
+          {% endif %}
+
+          {% if block.settings.heading != blank %}
+            <h3
+              class="huusk-cards__heading"
+              data-position="{{ block.settings.heading_position | default: 'top-left' }}"
+              style="
+                --hc-title-inset: {{ block.settings.heading_inset | default: 16 }}px;
+                --hc-title-inset-mobile: {{ block.settings.heading_inset_mobile | default: 16 }}px;
+                --hc-title-font: {{ block.settings.heading_font | default: 'var(--font-heading--family)' }};
+                --hc-title-size: {{ block.settings.heading_size | default: 20 }}px;
+                --hc-title-size-mobile: {{ block.settings.heading_size_mobile | default: 18 }}px;
+                --hc-title-color: {{ block.settings.heading_color | default: '#FFFFFF' }};
+                --hc-title-weight: {{ block.settings.heading_weight | default: '700' }};
+                --hc-title-offset-y: {{ block.settings.heading_offset_y | default: 0 }}px;
+                --hc-title-offset-y-mobile: {{ block.settings.heading_offset_y_mobile | default: 0 }}px;
+
+              "
+            >
+                {{- block.settings.heading | escape | newline_to_br -}}
+            </h3>
+
+          {% endif %}
+
+          {% if block.settings.caption != blank %}
+            <div
+              class="huusk-cards__caption"
+              data-position="{{ block.settings.caption_position | default: 'bottom-left' }}"
+              data-mobile-position="{% if block.settings.caption_position_mobile == blank or block.settings.caption_position_mobile == 'inherit' %}{{ block.settings.caption_position | default: 'bottom-left' }}{% else %}{{ block.settings.caption_position_mobile }}{% endif %}"
+              style="
+                --hc-caption-inset: {{ block.settings.caption_inset | default: 16 }}px;
+                --hc-caption-inset-mobile: {{ block.settings.caption_inset_mobile | default: 16 }}px;
+                --hc-caption-font: {{ block.settings.caption_font | default: 'var(--font-body--family)' }};
+                --hc-caption-size: {{ block.settings.caption_size | default: 14 }}px;
+                --hc-caption-size-mobile: {{ block.settings.caption_size_mobile | default: 12 }}px;
+                --hc-caption-color: {{ block.settings.caption_color | default: '#FFFFFF' }};
+              "
+            >
+              {{ block.settings.caption }}
+            </div>
+
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+    {% if section.settings.show_sequence and section.blocks.size > 1 %}
+      <nav class="huusk-cards__nav" aria-label="Card navigation">
+        <button type="button" data-hc-step="-1" aria-label="Previous card">‹</button>
+        {% for block in section.blocks %}
+          <button type="button" data-hc-index="{{ forloop.index0 }}" aria-label="Card {{ forloop.index }}">{{ forloop.index }}</button>
+        {% endfor %}
+        <button type="button" data-hc-step="1" aria-label="Next card">›</button>
+      </nav>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+   /* 电脑端正文宽度 */
+  #HuuskCards-{{ section.id }} .huusk-cards__caption {
+    width: 50%;
+    margin-inline: 0;
+  }
+
+  /* 手机端填满左右留白之间的可用区域 */
+  @media (max-width: 749px) {
+    #HuuskCards-{{ section.id }}
+    .huusk-cards__caption[data-mobile-position] {
+      width: calc(
+        100% - var(--hc-caption-inset-mobile, 16px) * 2
+      );
+    }
+  }
+
+ #HuuskCards-{{ section.id }}
+ .huusk-cards__caption[data-position$="-left"] {
+   right: auto;
+ }
+
+ #HuuskCards-{{ section.id }}
+ .huusk-cards__caption[data-position$="-center"] {
+   margin-inline: auto;
+ }
+
+ #HuuskCards-{{ section.id }}
+ .huusk-cards__caption[data-position$="-right"] {
+   left: auto;
+ }
+
+ @media (max-width: 749px) {
+   #HuuskCards-{{ section.id }}
+   .huusk-cards__caption[data-mobile-position] {
+     left: var(--hc-caption-inset-mobile, 16px);
+     right: var(--hc-caption-inset-mobile, 16px);
+     margin-inline: 0;
+   }
+
+   #HuuskCards-{{ section.id }}
+   .huusk-cards__caption[data-mobile-position$="-left"] {
+     right: auto;
+   }
+
+   #HuuskCards-{{ section.id }}
+   .huusk-cards__caption[data-mobile-position$="-center"] {
+     margin-inline: auto;
+   }
+
+   #HuuskCards-{{ section.id }}
+   .huusk-cards__caption[data-mobile-position$="-right"] {
+     left: auto;
+   }
+ }
+
+  /* 电脑和手机端都只保留左右箭头 */
+  #HuuskCards-{{ section.id }}
+  .huusk-cards__nav [data-hc-index] {
+    display: none;
+  }
+
+   #HuuskCards-{{ section.id }},
+   #HuuskCards-{{ section.id }} * {
+     box-sizing: border-box;
+   }
+
+  #HuuskCards-{{ section.id }} {
+    --hc-slide-width: min(
+      {{ section.settings.active_width_desktop }}px,
+      85vw,
+      var(--hc-panel-width)
+    );
+
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: var(--hc-height);
+    padding: 32px 0;
+    border-radius: 0;
+    overflow: hidden;
+    background: {{ section.settings.panel_color }};
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__background {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    border-radius: 0;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__background img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 0;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__panel {
+    width: 100%;
+    max-width: var(--hc-panel-width);
+    min-width: 0;
+    background: transparent;
+    border-radius: var(--hc-panel-radius);
+    overflow: hidden;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__list {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--hc-gap);
+    width: 100%;
+    margin: 0;
+    padding-block: 24px;
+    padding-inline: calc((100% - var(--hc-slide-width)) / 2);
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: relative;
+    scroll-snap-type: none;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__list:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -4px;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__card {
+    position: relative;
+    flex: 0 0 var(--hc-slide-width);
+    min-width: 0;
+    margin: 0;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--hc-card-radius);
+    overflow: hidden;
+    background: #111;
+    scroll-snap-align: center;
+    transform: scale(var(--hc-scale, .6));
+    opacity: .88;
+    cursor: pointer;
+  }
+
+  /* 缩小侧卡向中心收拢，补偿 transform 不改变布局占位。 */
+  #HuuskCards-{{ section.id }} .huusk-cards__card:not(:last-child) {
+    margin-inline-end: calc(var(--hc-slide-width) * -0.2);
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__card.is-active {
+    z-index: 1;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__placeholder {
+    background: #333;
+    fill: #aaa;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__shade {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgb(0 0 0 / 40%),
+      transparent 45%,
+      rgb(0 0 0 / 60%)
+    );
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__caption {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__caption p {
+    margin: 0;
+  }
+
+  @media screen and (max-width: 749px) {
+    #HuuskCards-{{ section.id }} {
+      --hc-slide-width: min(
+        {{ section.settings.active_width_mobile }}vw,
+        var(--hc-panel-width)
+      );
+
+      min-height: var(--hc-height-mobile);
+      padding-block: 24px;
+    }
+
+    #HuuskCards-{{ section.id }} .huusk-cards__heading {
+      font-size: var(--hc-title-size-mobile);
+    }
+
+
+    #HuuskCards-{{ section.id }} .huusk-cards__caption {
+      font-size: 12px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #HuuskCards-{{ section.id }} .huusk-cards__card {
+      transition: none;
+    }
+  }
+  #HuuskCards-{{ section.id }} .huusk-cards__picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  /* 标题：字体、字号、颜色 */
+  #HuuskCards-{{ section.id }} .huusk-cards__heading {
+    position: absolute;
+    inset: auto 16px auto 16px;
+    z-index: 2;
+    margin: 0;
+    font-family: var(--hc-title-font);
+    font-size: var(--hc-title-size);
+    color: var(--hc-title-color, #fff);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    text-align: left;
+    transform: none;
+  }
+
+  /* 保留标题九宫格位置 */
+  #HuuskCards-{{ section.id }}
+  .huusk-cards__heading[data-position^="top-"] {
+    top: 16px;
+  }
+
+  #HuuskCards-{{ section.id }}
+  .huusk-cards__heading[data-position^="middle-"] {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  #HuuskCards-{{ section.id }}
+  .huusk-cards__heading[data-position^="bottom-"] {
+    bottom: 16px;
+  }
+
+  #HuuskCards-{{ section.id }}
+  .huusk-cards__heading[data-position$="-center"] {
+    text-align: center;
+  }
+
+  #HuuskCards-{{ section.id }}
+  .huusk-cards__heading[data-position$="-right"] {
+    text-align: right;
+  }
+
+  /* 内容：字体、字号、颜色 */
+  #HuuskCards-{{ section.id }} .huusk-cards__caption {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 2;
+    font-family: var(--hc-caption-font);
+    font-size: var(--hc-caption-size);
+    color: var(--hc-caption-color, #fff);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__caption p,
+  #HuuskCards-{{ section.id }} .huusk-cards__caption a,
+  #HuuskCards-{{ section.id }} .huusk-cards__caption li {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  #HuuskCards-{{ section.id }} .huusk-cards__caption p {
+    margin: 0;
+  }
+
+  @media screen and (max-width: 749px) {
+    #HuuskCards-{{ section.id }} .huusk-cards__heading {
+      font-size: var(--hc-title-size-mobile);
+    }
+
+    #HuuskCards-{{ section.id }} .huusk-cards__caption {
+      font-size: var(--hc-caption-size-mobile);
+    }
+  }
+  /* 标题粗细与换行 */
+  #HuuskCards-{{ section.id }} .huusk-cards__heading {
+    font-weight: var(--hc-title-weight, 700);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* 内容位置 */
+  #HuuskCards-{{ section.id }} .huusk-cards__caption {
+    top: auto;
+    bottom: auto;
+    left: 16px;
+    right: 16px;
+    text-align: left;
+    transform: none;
+    white-space: normal;
+  }
+
+  #HuuskCards-{{ section.id }}
+  .huusk-cards__caption[data-position^="top-"] {
+    top: 16px;
+  }
+
+  #HuuskCards-{{ section.id }}
+  .huusk-cards__caption[data-position^="middle-"] {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  #HuuskCards-{{ section.id }}
+  .huusk-cards__caption[data-position^="bottom-"] {
+    bottom: 16px;
+  }
+
+  #HuuskCards-{{ section.id }}
+  .huusk-cards__caption[data-position$="-center"] {
+    text-align: center;
+  }
+
+  #HuuskCards-{{ section.id }}
+  .huusk-cards__caption[data-position$="-right"] {
+    text-align: right;
+  }
+  {% if section.settings.enable_mobile_card_height %}
+    @media screen and (max-width: 749px) {
+      #HuuskCards-{{ section.id }} .huusk-cards__card {
+        aspect-ratio: auto;
+        height: {{ section.settings.mobile_card_height }}px;
+      }
+
+      #HuuskCards-{{ section.id }} .huusk-cards__picture,
+      #HuuskCards-{{ section.id }} .huusk-cards__image {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+    }
+  {% endif %}
+  /* 在现有标题位置基础上微调，不覆盖居中定位 */
+  #HuuskCards-{{ section.id }} .huusk-cards__heading {
+    translate: 0 var(--hc-title-offset-y, 0px);
+  }
+
+  @media screen and (max-width: 749px) {
+    #HuuskCards-{{ section.id }} .huusk-cards__heading {
+      translate: 0 var(--hc-title-offset-y-mobile, 0px);
+    }
+  }
+
+
+  #HuuskCards-{{ section.id }} .huusk-cards__nav{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px 16px}
+  #HuuskCards-{{ section.id }} .huusk-cards__nav button{opacity:.5;display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:1px solid rgb(255 255 255 / 45%);border-radius:50%;background:transparent;color:#fff;cursor:pointer;font:inherit}
+  #HuuskCards-{{ section.id }} .huusk-cards__nav button[aria-current="true"]{background:#fff;color:#171717;border-color:#fff}
+  #HuuskCards-{{ section.id }} .huusk-cards__nav button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+  {% if section.settings.edge_fade %}
+    #HuuskCards-{{ section.id }} .huusk-cards__list{-webkit-mask-image:linear-gradient(to right,transparent,#000 {{ section.settings.fade_width }}%,#000 {{ 100 | minus: section.settings.fade_width }}%,transparent);mask-image:linear-gradient(to right,transparent,#000 {{ section.settings.fade_width }}%,#000 {{ 100 | minus: section.settings.fade_width }}%,transparent)}
+  {% endif %}
+  #HuuskCards-{{ section.id }} .huusk-cards__heading{left:var(--hc-title-inset,16px);right:var(--hc-title-inset,16px)}
+  #HuuskCards-{{ section.id }} .huusk-cards__caption{left:var(--hc-caption-inset,16px);right:var(--hc-caption-inset,16px)}
+  @media(max-width:749px){
+    #HuuskCards-{{ section.id }} .huusk-cards__heading{left:var(--hc-title-inset-mobile,16px);right:var(--hc-title-inset-mobile,16px)}
+    #HuuskCards-{{ section.id }} .huusk-cards__caption{left:var(--hc-caption-inset-mobile,16px);right:var(--hc-caption-inset-mobile,16px)}
+  }
+
+
+  @media(max-width:749px){
+    #HuuskCards-{{ section.id }} .huusk-cards__caption[data-mobile-position]{top:auto;bottom:auto;transform:none;text-align:left}
+    #HuuskCards-{{ section.id }} .huusk-cards__caption[data-mobile-position^="top-"]{top:16px}
+    #HuuskCards-{{ section.id }} .huusk-cards__caption[data-mobile-position^="middle-"]{top:50%;transform:translateY(-50%)}
+    #HuuskCards-{{ section.id }} .huusk-cards__caption[data-mobile-position^="bottom-"]{bottom:16px}
+    #HuuskCards-{{ section.id }} .huusk-cards__caption[data-mobile-position$="-center"]{text-align:center}
+    #HuuskCards-{{ section.id }} .huusk-cards__caption[data-mobile-position$="-right"]{text-align:right}
+  }
+</style>
+
+
+<script>
+(() => {
+  function initialize(root) {
+    if (!root) return;
+    if (root.huuskCarouselCleanup) root.huuskCarouselCleanup();
+    const list = root.querySelector('.huusk-cards__list');
+    if (!list) return;
+    const cards = Array.from(list.querySelectorAll('.huusk-cards__card'));
+    if (!cards.length) return;
+    const count = cards.length;
+    const controller = new AbortController();
+    const options = {signal:controller.signal};
+    const reduced = matchMedia('(prefers-reduced-motion:reduce)');
+    const dots = Array.from(root.querySelectorAll('[data-hc-index]'));
+    const clones = [];
+    cards.forEach((card, index) => { card.dataset.hcReal = index; });
+    function copyGroup(before) {
+      const fragment = document.createDocumentFragment();
+      cards.forEach((card, index) => {
+        const clone = card.cloneNode(true);
+        clone.dataset.hcReal = index;
+        clone.setAttribute('aria-hidden', 'true');
+        clone.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+        clone.removeAttribute('id');
+        [clone, ...clone.querySelectorAll('*')].forEach(node => {
+          Array.from(node.attributes).forEach(attribute => {
+            if (attribute.name.startsWith('data-shopify-')) node.removeAttribute(attribute.name);
+          });
+        });
+        clone.querySelectorAll('a,button,input,select,textarea,[tabindex]').forEach(node => node.setAttribute('tabindex','-1'));
+        clones.push(clone);
+        fragment.appendChild(clone);
+      });
+      if (before) list.prepend(fragment); else list.append(fragment);
+    }
+    if (count > 1) { copyGroup(true); copyGroup(false); }
+    const rendered = Array.from(list.querySelectorAll('.huusk-cards__card'));
+    let positions = [], centers = [], period = 0, viewport = 0, stride = 1;
+    let active = 0, painted = -1, frame = 0, timer = 0, held = false;
+    let lastWidth = -1, lastCardWidth = -1;
+    function measure() {
+      viewport = list.clientWidth;
+      positions = rendered.map(card => card.offsetLeft + card.offsetWidth / 2);
+      const start = count > 1 ? count : 0;
+      centers = positions.slice(start, start + count);
+      period = count > 1 ? positions[count] - positions[0] : 0;
+      stride = count > 1 ? positions[1] - positions[0] : cards[0].offsetWidth;
+    }
+    function normalize() {
+      if (!period) return;
+      const middle = list.scrollLeft + viewport / 2;
+      const lower = centers[0] - stride / 2;
+      const upper = lower + period;
+      let target = list.scrollLeft;
+      if (middle < lower) target += period;
+      else if (middle >= upper) target -= period;
+      if (target !== list.scrollLeft) list.scrollTo({left:target,behavior:'instant'});
+    }
+    function update() {
+      frame = 0;
+      const middle = list.scrollLeft + viewport / 2;
+      let nearest = 0, distance = Infinity;
+      const distances = positions.map((center, index) => {
+        const d = Math.abs(center - middle);
+        if (d < distance) { distance = d; nearest = index; }
+        return d;
+      });
+      active = Number(rendered[nearest].dataset.hcReal);
+      rendered.forEach((card,index) => {
+        const proximity = Math.max(0, 1 - distances[index] / Math.max(stride,1));
+        const eased = proximity * proximity * (3 - 2 * proximity);
+        card.style.setProperty('--hc-scale', String(.6 + .4 * eased));
+        card.style.opacity = String(.88 + .12 * eased);
+        card.classList.toggle('is-active', index === nearest);
+      });
+      if (painted !== active) {
+        painted = active;
+        dots.forEach((button,index) => {
+          if(index === active) button.setAttribute('aria-current','true');
+          else button.removeAttribute('aria-current');
+        });
+      }
+    }
+    function go(index, animate = true, direction = 0) {
+      index = (index + count) % count;
+      const middle = list.scrollLeft + viewport / 2;
+      let target = centers[index];
+      if (period && animate) {
+        const choices = [target - period, target, target + period];
+        const candidates = direction ? choices.filter(value => direction > 0 ? value > middle + 1 : value < middle - 1) : choices;
+        target = candidates.reduce((best,value) => Math.abs(value-middle) < Math.abs(best-middle) ? value : best, candidates[0] ?? target);
+      }
+      list.scrollTo({left:target - viewport/2,behavior:animate && !reduced.matches ? 'smooth' : 'instant'});
+      if (!animate || reduced.matches) update();
+    }
+    function settle() {
+      clearTimeout(timer);
+      if (held) return;
+      timer = setTimeout(() => {
+        update();
+        const middle = list.scrollLeft + viewport/2;
+        const distance = Math.min(...positions.filter((_,index) => Number(rendered[index].dataset.hcReal) === active).map(value => Math.abs(value-middle)));
+        if(distance > 1) {
+          go(active);
+        } else {
+          // 仅在滑动和居中动画结束后回收副本，避免中途重置打断惯性。
+          normalize();
+          update();
+        }
+      },180);
+    }
+    list.addEventListener('scroll', () => {
+      if (!frame) frame = requestAnimationFrame(update);
+      settle();
+    },{passive:true,signal:controller.signal});
+    list.addEventListener('pointerdown', () => { held = true; clearTimeout(timer); },options);
+    window.addEventListener('pointerup', () => { if(held) { held=false; settle(); } },options);
+    list.addEventListener('pointercancel', () => { held=false; settle(); },options);
+    list.addEventListener('click', event => {
+      const card = event.target.closest('.huusk-cards__card');
+      if(card) go(Number(card.dataset.hcReal));
+    },options);
+    const nav = root.querySelector('.huusk-cards__nav');
+    if(nav) nav.addEventListener('click',event => {
+      const button = event.target.closest('button');
+      if(!button) return;
+      if(button.hasAttribute('data-hc-index')) go(Number(button.dataset.hcIndex));
+      else { const step = Number(button.dataset.hcStep); go(active + step,true,step); }
+    },options);
+    list.addEventListener('keydown',event => {
+      if(!['ArrowLeft','ArrowRight'].includes(event.key)) return;
+      event.preventDefault();
+      const step = event.key === 'ArrowRight' ? 1 : -1;
+      go(active+step,true,step);
+    },options);
+    root.addEventListener('shopify:block:select',event => {
+      const index = cards.findIndex(card => card === event.target || card.contains(event.target));
+      if(index >= 0) go(index,false);
+    },options);
+    const observer = new ResizeObserver(() => {
+      const width = list.clientWidth, cardWidth = cards[0].offsetWidth;
+      if(width === lastWidth && cardWidth === lastCardWidth) return;
+      lastWidth=width; lastCardWidth=cardWidth;
+      measure(); go(active,false);
+    });
+    observer.observe(list);
+    root.huuskCarouselCleanup = () => {
+      controller.abort(); observer.disconnect(); clearTimeout(timer);
+      if(frame) cancelAnimationFrame(frame);
+      clones.forEach(clone => clone.remove());
+    };
+    measure(); go(active,false);
+  }
+  window.huuskCenteredCardsInit = initialize;
+  if (!window.huuskCardsLoopEvents) {
+    window.huuskCardsLoopEvents = true;
+    document.addEventListener('shopify:section:load',event => {
+      event.target.querySelectorAll('.huusk-cards').forEach(root => window.huuskCenteredCardsInit(root));
+    });
+    document.addEventListener('shopify:section:unload',event => {
+      event.target.querySelectorAll('.huusk-cards').forEach(root => root.huuskCarouselCleanup?.());
+    });
+  }
+  initialize(document.getElementById('HuuskCards-{{ section.id }}'));
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Huusk 背景滑动卡片",
+  "tag": "div",
+  "settings": [
+    {"type":"checkbox","id":"show_sequence","label":"显示圆形顺序导航","default":true},
+    {"type":"checkbox","id":"edge_fade","label":"两侧渐隐","default":true},
+    {"type":"range","id":"fade_width","label":"渐隐区域宽度","min":0,"max":25,"step":1,"unit":"%","default":12},
+    {
+      "type": "range",
+      "id": "active_width_desktop",
+      "label": "电脑端选中大图宽度",
+      "min": 280,
+      "max": 1000,
+      "step": 10,
+      "unit": "px",
+      "default": 480
+    },
+    {
+      "type": "range",
+      "id": "active_width_mobile",
+      "label": "手机端选中大图宽度",
+      "min": 50,
+      "max": 94,
+      "step": 1,
+      "unit": "%",
+      "default": 76,
+      "info": "相对于屏幕宽度，建议保留两侧图片的可见空间。"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_mobile_card_height",
+      "label": "启用手机端自定义卡片高度",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "mobile_card_height",
+      "label": "手机端卡片高度",
+      "min": 160,
+      "max": 600,
+      "step": 10,
+      "unit": "px",
+      "default": 300
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "背景底图"
+    },
+    {
+      "type": "range",
+      "id": "min_height",
+      "label": "电脑端最小高度",
+      "min": 300,
+      "max": 900,
+      "step": 10,
+      "unit": "px",
+      "default": 500
+    },
+    {
+      "type": "range",
+      "id": "mobile_min_height",
+      "label": "手机端最小高度",
+      "min": 250,
+      "max": 750,
+      "step": 10,
+      "unit": "px",
+      "default": 400
+    },
+    {
+      "type": "range",
+      "id": "panel_width",
+      "label": "滑动模块最大宽度",
+      "min": 400,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "default": 1200
+    },
+    {
+      "type": "range",
+      "id": "panel_radius",
+      "label": "滑动模块外框圆角",
+      "min": 0,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "color",
+      "id": "panel_color",
+      "label": "滑动模块底板颜色",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "panel_opacity",
+      "label": "底板不透明度",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 45
+    },
+    {
+      "type": "range",
+      "id": "card_width",
+      "label": "卡片宽度",
+      "min": 200,
+      "max": 600,
+      "step": 10,
+      "unit": "px",
+      "default": 320
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "label": "单张卡片圆角",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "card_gap",
+      "label": "卡片间距",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "text",
+      "id": "accessibility_label",
+      "label": "滑动区域辅助说明",
+      "default": "Image gallery"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "图片卡片",
+      "settings": [
+        {"type":"range","id":"heading_inset","label":"桌面标题左右留白","min":0,"max":100,"step":2,"unit":"px","default":16},
+        {"type":"range","id":"heading_inset_mobile","label":"手机标题左右留白","min":0,"max":60,"step":2,"unit":"px","default":16},
+        {"type":"range","id":"caption_inset","label":"桌面正文左右留白","min":0,"max":100,"step":2,"unit":"px","default":16},
+        {"type":"range","id":"caption_inset_mobile","label":"手机正文左右留白","min":0,"max":60,"step":2,"unit":"px","default":16},
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "卡片图片"
+        },
+        {
+          "type": "image_picker",
+          "id": "image_mobile",
+          "label": "手机端图片",
+          "info": "可选。未设置时使用卡片图片。"
+        },
+        {
+          "type": "textarea",
+          "id": "heading",
+          "label": "卡片标题",
+          "info": "按 Enter 手动换行。"
+        },
+        {
+          "type": "select",
+          "id": "heading_weight",
+          "label": "标题字体粗细",
+          "options": [
+            { "value": "400", "label": "常规 400" },
+            { "value": "500", "label": "中等 500" },
+            { "value": "600", "label": "半粗 600" },
+            { "value": "700", "label": "加粗 700" },
+            { "value": "800", "label": "特粗 800" }
+          ],
+          "default": "700"
+        },
+        {"type":"select","id":"caption_position_mobile","label":"手机端内容文字位置","options":[{"value":"inherit","label":"跟随桌面"},{"value":"top-left","label":"左上"},{"value":"top-center","label":"上方居中"},{"value":"top-right","label":"右上"},{"value":"middle-left","label":"左侧居中"},{"value":"middle-center","label":"正中心"},{"value":"middle-right","label":"右侧居中"},{"value":"bottom-left","label":"左下"},{"value":"bottom-center","label":"下方居中"},{"value":"bottom-right","label":"右下"}],"default":"inherit"},
+        {
+          "type": "select",
+          "id": "caption_position",
+          "label": "内容文字位置",
+          "options": [
+            { "value": "top-left", "label": "左上" },
+            { "value": "top-center", "label": "上方居中" },
+            { "value": "top-right", "label": "右上" },
+            { "value": "middle-left", "label": "左侧居中" },
+            { "value": "middle-center", "label": "正中心" },
+            { "value": "middle-right", "label": "右侧居中" },
+            { "value": "bottom-left", "label": "左下" },
+            { "value": "bottom-center", "label": "下方居中" },
+            { "value": "bottom-right", "label": "右下" }
+          ],
+          "default": "bottom-left"
+        },
+
+        {
+          "type": "select",
+          "id": "heading_font",
+          "label": "标题字体",
+          "options": [
+            {
+              "value": "var(--font-heading--family)",
+              "label": "主题标题字体"
+            },
+            {
+              "value": "var(--font-body--family)",
+              "label": "主题正文字体"
+            },
+            {
+              "value": "var(--font-subheading--family)",
+              "label": "主题副标题字体"
+            },
+            {
+              "value": "Arial, sans-serif",
+              "label": "Arial"
+            },
+            {
+              "value": "Georgia, serif",
+              "label": "Georgia"
+            }
+          ],
+          "default": "var(--font-heading--family)"
+        },
+        {
+          "type": "range",
+          "id": "heading_size",
+          "label": "电脑端标题字号",
+          "min": 12,
+          "max": 60,
+          "step": 1,
+          "unit": "px",
+          "default": 20
+        },
+        {
+          "type": "range",
+          "id": "heading_size_mobile",
+          "label": "手机端标题字号",
+          "min": 12,
+          "max": 40,
+          "step": 1,
+          "unit": "px",
+          "default": 18
+        },
+        {
+          "type": "select",
+          "id": "heading_position",
+          "label": "标题位置",
+          "options": [
+            { "value": "top-left", "label": "左上" },
+            { "value": "top-center", "label": "上方居中" },
+            { "value": "top-right", "label": "右上" },
+            { "value": "middle-left", "label": "左侧居中" },
+            { "value": "middle-center", "label": "正中心" },
+            { "value": "middle-right", "label": "右侧居中" },
+            { "value": "bottom-left", "label": "左下" },
+            { "value": "bottom-center", "label": "下方居中" },
+            { "value": "bottom-right", "label": "右下" }
+          ],
+          "default": "top-left"
+        },
+        {
+          "type": "range",
+          "id": "heading_offset_y",
+          "label": "电脑端标题上下偏移",
+          "min": -100,
+          "max": 100,
+          "step": 2,
+          "unit": "px",
+          "default": 0,
+          "info": "负数上移，正数下移。"
+        },
+        {
+          "type": "range",
+          "id": "heading_offset_y_mobile",
+          "label": "手机端标题上下偏移",
+          "min": -100,
+          "max": 100,
+          "step": 2,
+          "unit": "px",
+          "default": 0,
+          "info": "负数上移，正数下移。"
+        },
+        {
+          "type": "color",
+          "id": "heading_color",
+          "label": "标题颜色",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "richtext",
+          "id": "caption",
+          "label": "内容文字"
+        },
+        {
+          "type": "select",
+          "id": "caption_font",
+          "label": "内容字体",
+          "options": [
+            {
+              "value": "var(--font-body--family)",
+              "label": "主题正文字体"
+            },
+            {
+              "value": "var(--font-heading--family)",
+              "label": "主题标题字体"
+            },
+            {
+              "value": "var(--font-subheading--family)",
+              "label": "主题副标题字体"
+            },
+            {
+              "value": "Arial, sans-serif",
+              "label": "Arial"
+            },
+            {
+              "value": "Georgia, serif",
+              "label": "Georgia"
+            }
+          ],
+          "default": "var(--font-body--family)"
+        },
+        {
+          "type": "range",
+          "id": "caption_size",
+          "label": "电脑端内容字号",
+          "min": 10,
+          "max": 40,
+          "step": 1,
+          "unit": "px",
+          "default": 14
+        },
+        {
+          "type": "range",
+          "id": "caption_size_mobile",
+          "label": "手机端内容字号",
+          "min": 10,
+          "max": 32,
+          "step": 1,
+          "unit": "px",
+          "default": 12
+        },
+        {
+          "type": "color",
+          "id": "caption_color",
+          "label": "内容颜色",
+          "default": "#FFFFFF"
+        }
+
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Huusk 背景滑动卡片",
+      "blocks": [
+        { "type": "card" },
+        { "type": "card" },
+        { "type": "card" }
+      ]
+    }
+  ]
+}
+{% endschema %}

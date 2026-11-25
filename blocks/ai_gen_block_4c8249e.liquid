@@ -1,0 +1,72 @@
+{% doc %}
+  @prompt
+    副标题文字, 字号可选择范围再大一些，到100, 增加行间距和调整选项, 文字框里要可以换行
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-subtitle-{{ ai_gen_id }} {
+    display: block;
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    margin: 0;
+    color: {{ block.settings.text_color }};
+    font-family: {{ settings.type_subheading_font.family }}, {{ settings.type_subheading_font.fallback_families }};
+    font-size: {{ block.settings.font_size }}px;
+    font-weight: {{ block.settings.font_weight }};
+    line-height: {{ block.settings.line_height }};
+    letter-spacing: {{ block.settings.letter_spacing }}px;
+    text-align: {{ block.settings.alignment }};
+    white-space: pre-line;
+  }
+  {% if block.settings.enable_mobile_font_size %}
+  @media screen and (max-width: 749px) {
+    .ai-subtitle-{{ ai_gen_id }} {
+      font-size: {{ block.settings.font_size_mobile }}px;
+    }
+   }
+  {% endif %}
+
+{% endstyle %}
+
+<p class="ai-subtitle-{{ ai_gen_id }}" {{ block.shopify_attributes }}>{{ block.settings.subtitle_text | escape }}</p>
+
+{% schema %}
+{
+  "name": "副标题文字",
+  "settings": [
+    { "type": "textarea", "id": "subtitle_text", "label": "副标题文字", "default": "匠心打造，精工呈现" },
+    { "type": "range", "id": "desktop_width_percent", "label": "桌面宽度", "min": 50, "max": 100, "step": 5, "unit": "%", "default": 100 },
+    { "type": "range", "id": "font_size", "label": "字号", "min": 12, "max": 100, "step": 1, "unit": "px", "default": 16 },
+    {
+      "type": "checkbox",
+      "id": "enable_mobile_font_size",
+      "label": "单独设置手机端字号",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "font_size_mobile",
+      "label": "手机端字号",
+      "min": 12,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+
+    { "type": "select", "id": "font_weight", "label": "字重", "options": [
+      { "value": "400", "label": "常规" }, { "value": "500", "label": "中等" }, { "value": "600", "label": "半粗" }
+    ], "default": "400" },
+    { "type": "range", "id": "line_height", "label": "行间距", "min": 1, "max": 3, "step": 0.1, "default": 1.5 },
+    { "type": "range", "id": "letter_spacing", "label": "字间距", "min": 0, "max": 5, "step": 1, "unit": "px", "default": 1 },
+    { "type": "select", "id": "alignment", "label": "对齐方式", "options": [
+      { "value": "left", "label": "左对齐" }, { "value": "center", "label": "居中" }, { "value": "right", "label": "右对齐" }
+    ], "default": "center" },
+    { "type": "color", "id": "text_color", "label": "文字颜色", "default": "#333333" }
+  ],
+  "presets": [{ "name": "副标题文字" }],
+  "tag": null,
+  "class": "subtitle-text-block"
+}
+{% endschema %}

@@ -1,0 +1,106 @@
+<div id="hlfaq-{{ section.id }}" class="hlfaq color-{{ section.settings.color_scheme }}" style="--faq-padding:{{ section.settings.padding }}px;--faq-heading:{{ section.settings.heading_size }}px;--faq-left:{{ section.settings.left_width }}%;">
+<div class="hlfaq__inner"><div class="hlfaq__intro"><div class="hlfaq__eyebrow">{{ section.settings.eyebrow }}</div><h2>{{ section.settings.heading | escape }}</h2><div class="hlfaq__description">{{ section.settings.description }}</div>{% if section.settings.link != blank %}<a class="link link--underline" href="{{ section.settings.link }}">{{ section.settings.button_label | escape }}</a>{% endif %}</div><div class="hlfaq__rows">{% for block in section.blocks %}<details {{ block.shopify_attributes }} {% if block.settings.open %}open{% endif %}><summary>{{ block.settings.question | escape }}<span aria-hidden="true" class="hlfaq__plus"></span></summary><div class="hlfaq__answer">{{ block.settings.answer }}</div></details>{% endfor %}</div></div></div>
+<style>.hlfaq{padding:var(--faq-padding) 20px;background:var(--color-background);color:var(--color-foreground);box-sizing:border-box}.hlfaq__inner{max-width:1400px;margin-inline:auto;display:flex;gap:32px}.hlfaq__intro{flex:0 1 var(--faq-left);min-width:0}.hlfaq__rows{flex:1;min-width:0}.hlfaq__intro h2{font-family:var(--font-heading--family);font-size:var(--faq-heading);font-weight:700;line-height:1.2;margin:12px 0;color:inherit}.hlfaq__intro p{margin:0}.hlfaq__eyebrow{color:#be925b}.hlfaq__description{color:#aca9a4;font-size:14px;margin-bottom:20px;max-width:68%}.hlfaq__rows details{border-bottom:1px solid var(--color-border,#777)}.hlfaq__rows summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:44px;padding:20px 0;font-weight:600}.hlfaq__rows summary::-webkit-details-marker{display:none}.hlfaq__plus::before{content:'+'}.hlfaq__rows details[open] .hlfaq__plus::before{content:'−'}.hlfaq__answer{
+  padding:0 0 20px;
+  color:#9d9a96;
+  text-align:left;
+}.hlfaq__answer p{margin:0 0 10px}.hlfaq__rows summary:focus-visible{outline:2px solid currentColor;outline-offset:3px}@media(max-width:749px){.hlfaq__inner{flex-direction:column}.hlfaq__description{max-width:100%}}</style>
+{% schema %}
+{
+  "name": "Huusk 轻量问答",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "配色",
+      "default": "scheme-1"
+    },
+    {
+      "type": "richtext",
+      "id": "eyebrow",
+      "label": "小标题"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "标题"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "说明"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "链接文字"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "链接"
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "label": "上下间距",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 100,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "标题字号",
+      "min": 24,
+      "max": 60,
+      "step": 1,
+      "default": 40,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "left_width",
+      "label": "左栏占比",
+      "min": 30,
+      "max": 60,
+      "step": 1,
+      "default": 40,
+      "unit": "%"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq",
+      "name": "问题和答案",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "问题"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "答案"
+        },
+        {
+          "type": "checkbox",
+          "id": "open",
+          "label": "默认展开",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Huusk 轻量问答"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,48 @@
+{% doc %}
+  Loads non-critical theme scripts after first interaction or browser idle.
+  Header, cart, and product gallery scripts stay in the document head.
+{% enddoc %}
+<script>
+  (function () {
+    var sources = [
+      {%- if settings.animations_reveal_on_scroll -%}
+        {{ 'animations.js' | asset_url | json }},
+      {%- endif -%}
+      {{ 'text-animation.js' | asset_url | json }}
+      {%- if settings.show_countdown -%}
+        ,{{ 'countdown.js' | asset_url | json }}
+      {%- endif -%}
+      {%- if settings.show_floating_icons -%}
+        ,{{ 'floating-icons.js' | asset_url | json }}
+      {%- endif -%}
+    ];
+
+    var started = false;
+    function loadSources() {
+      if (started) return;
+      started = true;
+      sources.forEach(function (src) {
+        if (!src || document.querySelector('script[src="' + src + '"]')) return;
+        var script = document.createElement('script');
+        script.src = src;
+        script.defer = true;
+        document.body.appendChild(script);
+      });
+    }
+
+    if (window.Shopify && Shopify.designMode) {
+      loadSources();
+      return;
+    }
+
+    ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (eventName) {
+      window.addEventListener(eventName, loadSources, { once: true, passive: true });
+    });
+    var idle = window.requestIdleCallback || function (callback) { return setTimeout(callback, 1600); };
+    idle(function () { setTimeout(loadSources, 600); }, { timeout: 3000 });
+  })();
+</script>
+
+
+
+

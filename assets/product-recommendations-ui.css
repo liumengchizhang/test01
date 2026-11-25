@@ -1,0 +1,74 @@
+/* Recommendation card buttons and equal-height rows. Explicitly loaded for section responses. */
+.product-recommendations .grid__item {
+    display: flex;
+    align-items: stretch;
+    height: auto;
+  }
+
+  .product-recommendations .grid__item > .product-card-wrapper {
+    display: flex;
+    height: auto;
+    min-width: 0;
+  }
+
+  .product-recommendations .product-card-wrapper > .card.flex-column {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .product-recommendations .card.flex-column > .card-product-information {
+    flex: 0 0 auto;
+  }
+
+  .product-recommendations .card.flex-column > .card-product-information:not(:has(> *)) {
+    display: none;
+  }
+
+  .product-recommendations .card.flex-column > .card-product-information:last-child:has(.card--block-button),
+  .product-recommendations .card.flex-column > .card--block-button:last-child {
+    margin-block-start: auto;
+    justify-content: flex-end;
+  }
+
+  .product-recommendations .card--block-button .quick-add__submit:is(.button, .button-secondary) {
+    --color-secondary-button-text: var(--color-primary-button-text);
+    --color-secondary-button-hover-text: var(--color-primary-button-text);
+    --button-color: var(--color-primary-button-text);
+    --button-background-color: var(--color-primary-button-background);
+    --button-border-color: var(--color-primary-button-border);
+    --color-effect-background: var(--color-primary-button-background);
+    color: var(--color-primary-button-text);
+    background-color: var(--color-primary-button-background);
+    border-color: var(--color-primary-button-border);
+    -webkit-text-fill-color: currentColor;
+    min-height: 44px;
+    transition: filter 0.2s ease;
+  }
+
+  @media (hover: hover) {
+    .product-recommendations .card--block-button .quick-add__submit:is(.button, .button-secondary):hover:not([disabled]) {
+      filter: brightness(0.88);
+    }
+  }
+
+  .product-recommendations .card--block-button .quick-add__submit:is(.button, .button-secondary):focus-visible {
+    outline: 2px solid #d4d0c9;
+    outline-offset: 3px;
+  }
+
+  .product-recommendations .card--block-button .quick-add__submit:is(.button, .button-secondary) > span:not(.loading__spinner):not(.sold-out-message),
+  .product-recommendations .card--block-button .quick-add__submit:is(.button, .button-secondary) .button-text-main {
+    color: inherit;
+    -webkit-text-fill-color: currentColor;
+  }
+
+  @media screen and (max-width: 749px) {
+    .product-recommendations .card--block-button .quick-add__submit:is(.button, .button-secondary) {
+      height: 44px;
+      padding: 0.8rem 0.6rem;
+      font-size: clamp(1.1rem, 3.3vw, 1.3rem);
+      line-height: 1.2;
+      letter-spacing: 0.03em;
+    }
+  }
+

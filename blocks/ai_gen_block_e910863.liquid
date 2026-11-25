@@ -1,0 +1,144 @@
+{% doc %}
+  @prompt
+    生成一个和收藏组块内容差不多的组别, 不对，是参考收藏组别的左右板块，重新生成，左右宽度可调整
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-split-panels-{{ ai_gen_id }} {
+    display: block;
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+  .ai-split-panels-{{ ai_gen_id }}__layout {
+    display: grid;
+    grid-template-columns: minmax(0, {{ block.settings.left_width_percent }}fr) minmax(0, {{ 100 | minus: block.settings.left_width_percent }}fr);
+    gap: {{ block.settings.panel_gap }}px;
+  }
+  .ai-split-panels-{{ ai_gen_id }}__panel {
+    position: relative;
+    display: flex;
+    min-height: {{ block.settings.panel_height }}px;
+    overflow: hidden;
+    align-items: flex-end;
+    background: #f1efeb;
+    color: #fff;
+  }
+  .ai-split-panels-{{ ai_gen_id }}__image,
+  .ai-split-panels-{{ ai_gen_id }}__placeholder,
+  .ai-split-panels-{{ ai_gen_id }}__placeholder svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .ai-split-panels-{{ ai_gen_id }}__image,
+  .ai-split-panels-{{ ai_gen_id }}__placeholder svg { object-fit: cover; }
+  .ai-split-panels-{{ ai_gen_id }}__placeholder svg { display: block; color: #d0ccc5; }
+  .ai-split-panels-{{ ai_gen_id }}__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,.02) 20%, rgba(0,0,0,.68) 100%);
+  }
+  .ai-split-panels-{{ ai_gen_id }}__content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding: 30px;
+  }
+  .ai-split-panels-{{ ai_gen_id }}__title {
+    margin: 0 0 8px;
+    color: inherit;
+    font-size: clamp(22px, 3vw, 36px);
+    line-height: 1.15;
+    font-weight: 500;
+  }
+  .ai-split-panels-{{ ai_gen_id }}__text {
+    max-width: 42ch;
+    margin: 0 0 16px;
+    color: inherit;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .ai-split-panels-{{ ai_gen_id }}__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid #fff;
+    color: #fff;
+    font-size: 13px;
+    text-decoration: none;
+  }
+  .ai-split-panels-{{ ai_gen_id }}__link:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+  @media screen and (max-width: 749px) {
+    .ai-split-panels-{{ ai_gen_id }} { width: 100%; }
+    .ai-split-panels-{{ ai_gen_id }}__layout { grid-template-columns: 1fr; }
+    .ai-split-panels-{{ ai_gen_id }}__panel { min-height: {{ block.settings.panel_height_mobile }}px; }
+    .ai-split-panels-{{ ai_gen_id }}__content { padding: 22px; }
+  }
+{% endstyle %}
+
+<div class="ai-split-panels-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-split-panels-{{ ai_gen_id }}__layout">
+    {% for i in (1..2) %}
+      {% liquid
+        assign image_key = 'panel_' | append: i | append: '_image'
+        assign title_key = 'panel_' | append: i | append: '_title'
+        assign text_key = 'panel_' | append: i | append: '_text'
+        assign label_key = 'panel_' | append: i | append: '_button'
+        assign link_key = 'panel_' | append: i | append: '_link'
+        assign panel_image = block.settings[image_key]
+        assign panel_title = block.settings[title_key]
+        assign panel_text = block.settings[text_key]
+        assign panel_label = block.settings[label_key]
+        assign panel_link = block.settings[link_key]
+      %}
+      <div class="ai-split-panels-{{ ai_gen_id }}__panel">
+        {% if panel_image != blank %}
+          <img class="ai-split-panels-{{ ai_gen_id }}__image" src="{{ panel_image | image_url: width: 1600 }}" alt="{{ panel_image.alt | escape }}" loading="lazy" width="{{ panel_image.width }}" height="{{ panel_image.height }}">
+        {% else %}
+          <div class="ai-split-panels-{{ ai_gen_id }}__placeholder">{{ 'image' | placeholder_svg_tag }}</div>
+        {% endif %}
+        <div class="ai-split-panels-{{ ai_gen_id }}__shade"></div>
+        <div class="ai-split-panels-{{ ai_gen_id }}__content">
+          {% if panel_title != blank %}<h2 class="ai-split-panels-{{ ai_gen_id }}__title">{{ panel_title | escape }}</h2>{% endif %}
+          {% if panel_text != blank %}<p class="ai-split-panels-{{ ai_gen_id }}__text">{{ panel_text | escape }}</p>{% endif %}
+          {% if panel_label != blank and panel_link != blank %}<a class="ai-split-panels-{{ ai_gen_id }}__link" href="{{ panel_link }}">{{ panel_label | escape }}</a>{% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "左右双栏展示",
+  "settings": [
+    { "type": "range", "id": "desktop_width_percent", "label": "桌面整体宽度", "min": 50, "max": 100, "step": 5, "unit": "%", "default": 100 },
+    { "type": "range", "id": "left_width_percent", "label": "左侧宽度占比", "min": 30, "max": 70, "step": 5, "unit": "%", "default": 50 },
+    { "type": "range", "id": "panel_gap", "label": "两栏间距", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 16 },
+    { "type": "range", "id": "panel_height", "label": "桌面板块高度", "min": 250, "max": 700, "step": 25, "unit": "px", "default": 450 },
+    { "type": "range", "id": "panel_height_mobile", "label": "手机板块高度", "min": 200, "max": 500, "step": 25, "unit": "px", "default": 325 },
+    { "type": "header", "content": "左侧内容" },
+    { "type": "image_picker", "id": "panel_1_image", "label": "图片" },
+    { "type": "text", "id": "panel_1_title", "label": "标题", "default": "匠心之作" },
+    { "type": "textarea", "id": "panel_1_text", "label": "说明文字", "default": "探索为日常料理精心打造的刀具与工具。" },
+    { "type": "text", "id": "panel_1_button", "label": "按钮文字", "default": "立即探索" },
+    { "type": "url", "id": "panel_1_link", "label": "链接" },
+    { "type": "header", "content": "右侧内容" },
+    { "type": "image_picker", "id": "panel_2_image", "label": "图片" },
+    { "type": "text", "id": "panel_2_title", "label": "标题", "default": "料理好物" },
+    { "type": "textarea", "id": "panel_2_text", "label": "说明文字", "default": "为每一次备料与烹饪，挑选合适的好工具。" },
+    { "type": "text", "id": "panel_2_button", "label": "按钮文字", "default": "浏览系列" },
+    { "type": "url", "id": "panel_2_link", "label": "链接" }
+  ],
+  "presets": [{ "name": "左右双栏展示" }],
+  "tag": null,
+  "class": "split-panels-block"
+}
+{% endschema %}

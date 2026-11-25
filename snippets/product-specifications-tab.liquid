@@ -1,0 +1,47 @@
+{%- liquid
+  assign field_mappings = block.settings.field_mappings | newline_to_br | split: '<br />'
+-%}
+
+{%- capture specification_rows -%}
+  {%- for mapping in field_mappings -%}
+    {%- assign mapping_parts = mapping | split: '|' -%}
+    {%- assign field_label = mapping_parts.first | strip -%}
+    {%- assign field_path = mapping_parts.last | strip -%}
+    {%- assign field_path_parts = field_path | split: '.' -%}
+
+    {%- if mapping_parts.size > 1 and field_path_parts.size == 2 -%}
+      {%- assign field_namespace = field_path_parts.first | strip -%}
+      {%- assign field_key = field_path_parts.last | strip -%}
+      {%- assign specification = product.metafields[field_namespace][field_key] -%}
+
+      {%- if field_label != blank and specification != blank -%}
+        <div class="product-specifications-tab__row">
+          <dt class="product-specifications-tab__label">{{ field_label | escape }}</dt>
+          <dd class="product-specifications-tab__value">
+            {%- case specification.type -%}
+              {%- when 'boolean' -%}
+                {%- if specification.value -%}Yes{%- else -%}No{%- endif -%}
+              {%- when 'multi_line_text_field' -%}
+                {{- specification.value | escape | newline_to_br -}}
+              {%- when 'rich_text_field' -%}
+                {{- specification | metafield_tag -}}
+              {%- else -%}
+                {%- if specification.type contains 'list.' -%}
+                  {{- specification.value | join: ', ' | escape -}}
+                {%- else -%}
+                  {{- specification.value | escape -}}
+                {%- endif -%}
+            {%- endcase -%}
+          </dd>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- assign specification_rows = specification_rows | strip -%}
+{%- if specification_rows != blank -%}
+  <dl class="product-specifications-tab">
+    {{- specification_rows -}}
+  </dl>
+{%- endif -%}

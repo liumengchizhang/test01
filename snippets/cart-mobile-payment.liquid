@@ -1,0 +1,13 @@
+<div class="cart-mobile-only cart-mobile-payment">
+  {%- if shop.enabled_payment_types.size > 0 -%}
+    <ul class="cart-mobile-payment__methods" role="list" aria-label="{{ 'content.payment' | t }}">
+      {%- for type in shop.enabled_payment_types -%}
+        <li>{{ type | payment_type_svg_tag: class: 'icon icon--full-color' }}</li>
+      {%- endfor -%}
+    </ul>
+  {%- endif -%}
+  <p>
+    <span class="svg-wrapper" aria-hidden="true">{{ 'icon-padlock.svg' | inline_asset_content }}</span>
+    {{ 'content.mobile_cart.secure_checkout' | t }}
+  </p>
+</div>

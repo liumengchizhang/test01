@@ -1,0 +1,133 @@
+{% doc %}
+  @prompt
+    税务信息, 字号大一些，相当于标题六, 字号再大一些
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-tax-info-{{ ai_gen_id }} {
+    display: block;
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    color: {{ block.settings.text_color }};
+    background-color: {{ block.settings.background_color }};
+    border: 1px solid {{ block.settings.border_color }};
+    padding: 14px 16px;
+    font-size: 2rem;
+    line-height: 1.4;
+  }
+
+  .ai-tax-info-{{ ai_gen_id }}__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .ai-tax-info-{{ ai_gen_id }}__icon {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    margin-top: 2px;
+  }
+
+  .ai-tax-info-{{ ai_gen_id }}__icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .ai-tax-info-{{ ai_gen_id }}__message p {
+    margin: 0;
+  }
+
+  .ai-tax-info-{{ ai_gen_id }}__link {
+    display: inline-block;
+    margin-top: 5px;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .ai-tax-info-{{ ai_gen_id }}__link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+{% endstyle %}
+
+<div class="ai-tax-info-{{ ai_gen_id }}" role="note" {{ block.shopify_attributes }}>
+  <div class="ai-tax-info-{{ ai_gen_id }}__row">
+    <span class="ai-tax-info-{{ ai_gen_id }}__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M12 11v5"></path>
+        <path d="M12 8h.01"></path>
+      </svg>
+    </span>
+    <div class="ai-tax-info-{{ ai_gen_id }}__message">
+      {{ block.settings.message }}
+      {% if block.settings.link_label != blank and block.settings.info_link != blank %}
+        <a class="ai-tax-info-{{ ai_gen_id }}__link" href="{{ block.settings.info_link }}">{{ block.settings.link_label | escape }}</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Tax information",
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "message",
+      "label": "Tax message",
+      "default": "<p>Taxes and duties are calculated at checkout where applicable.</p>"
+    },
+    {
+      "type": "text",
+      "id": "link_label",
+      "label": "Link label",
+      "default": "View tax and shipping details"
+    },
+    {
+      "type": "url",
+      "id": "info_link",
+      "label": "Information link"
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "Desktop width",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#1F1F1F"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#F7F6F2"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border",
+      "default": "#D8D6D0"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Tax information"
+    }
+  ],
+  "tag": null,
+  "class": "tax-information-block"
+}
+{% endschema %}

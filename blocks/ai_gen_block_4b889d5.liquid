@@ -1,0 +1,95 @@
+{% doc %}
+  @prompt
+    生成一个独属于一个产品落地页的、在画面底部的满幅长条弹窗，里面有背景颜色，标题及字体大小颜色，文本及字体大小颜色，加入购物车按钮，产品图，价格，布局：图片在左上，大小可调，价格在图片下方，上下左右可调，最右是加购按钮, 增加价格颜色选项，把×放到右上角，颜色可选, 价格字号也要可选, 把价格放到标题和文本下面，左边才是图片, 标题字体可选, 标题字体可选的是标题/副标题/文本, 标题和价格各增加可选字重, 要刚打开页面看不到，划到最底端才能看到, 不要划到最底端了，要划过产品信息就弹上来, 标题字体和文本字体要在标题/副标题/文本中选
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+{% if product %}
+{% style %}
+  .ai-sticky-bar-{{ ai_gen_id }} { display:block; position:fixed; z-index:40; left:0; right:0; bottom:0; width:100%; background:{{ block.settings.background_color }}; color:{{ block.settings.text_color }}; box-shadow:0 -4px 24px rgba(0,0,0,.12); padding:{{ block.settings.pad_vertical }}px 56px; }
+  .ai-sticky-bar-{{ ai_gen_id }}[hidden] { display:none; }
+  .ai-sticky-bar__inner-{{ ai_gen_id }} { width:{{ block.settings.desktop_width_percent }}%; max-width:1440px; margin:0 auto; display:flex; align-items:center; gap:24px; }
+  .ai-sticky-bar__image-{{ ai_gen_id }} { width:{{ block.settings.image_size }}px; height:{{ block.settings.image_size }}px; flex:0 0 {{ block.settings.image_size }}px; object-fit:cover; }
+  .ai-sticky-bar__placeholder-{{ ai_gen_id }} { width:{{ block.settings.image_size }}px; height:{{ block.settings.image_size }}px; background:#eee; flex:0 0 {{ block.settings.image_size }}px; }
+  .ai-sticky-bar__placeholder-{{ ai_gen_id }} svg { width:100%; height:100%; object-fit:cover; }
+  .ai-sticky-bar__details-{{ ai_gen_id }} { min-width:0; flex:1; }
+  .ai-sticky-bar__title-{{ ai_gen_id }} { margin:0 0 5px; font-family:{{ block.settings.heading_font }}; font-size:{{ block.settings.heading_size }}px; font-weight:{{ block.settings.heading_weight }}; line-height:1.2; color:{{ block.settings.heading_color }}; }
+  .ai-sticky-bar__text-{{ ai_gen_id }} { margin:0 0 7px; font-family:{{ block.settings.copy_font }}; font-size:{{ block.settings.copy_size }}px; line-height:1.4; color:{{ block.settings.text_color }}; }
+  .ai-sticky-bar__price-{{ ai_gen_id }} { color:{{ block.settings.price_color }}; font-size:{{ block.settings.price_size }}px; font-weight:{{ block.settings.price_weight }}; }
+  .ai-sticky-bar__action-{{ ai_gen_id }} { display:flex; align-items:center; gap:12px; margin-left:auto; }
+  .ai-sticky-bar__button-{{ ai_gen_id }} { border:0; padding:14px 24px; background:{{ block.settings.button_color }}; color:{{ block.settings.button_text_color }}; cursor:pointer; font:inherit; font-weight:600; min-height:48px; }
+  .ai-sticky-bar__button-{{ ai_gen_id }}:focus-visible,.ai-sticky-bar__close-{{ ai_gen_id }}:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
+  .ai-sticky-bar__close-{{ ai_gen_id }} { position:absolute; top:8px; right:12px; border:0; background:transparent; color:{{ block.settings.text_color }}; font-size:26px; line-height:1; padding:4px; cursor:pointer; }
+  @media(max-width:749px) { .ai-sticky-bar-{{ ai_gen_id }} { padding:12px 42px 12px 12px; } .ai-sticky-bar__inner-{{ ai_gen_id }} { width:100%; gap:12px; } .ai-sticky-bar__image-{{ ai_gen_id }},.ai-sticky-bar__placeholder-{{ ai_gen_id }} { width:{{ block.settings.image_size | times: 0.7 }}px; height:{{ block.settings.image_size | times: 0.7 }}px; flex-basis:{{ block.settings.image_size | times: 0.7 }}px; } .ai-sticky-bar__title-{{ ai_gen_id }} { font-size:{{ block.settings.heading_size | times: 0.8 }}px; } .ai-sticky-bar__text-{{ ai_gen_id }} { font-size:{{ block.settings.copy_size | times: 0.9 }}px; } .ai-sticky-bar__action-{{ ai_gen_id }} { gap:0; } .ai-sticky-bar__button-{{ ai_gen_id }} { padding:12px 14px; font-size:13px; } }
+{% endstyle %}
+<aside class="ai-sticky-bar-{{ ai_gen_id }}" data-product-sticky-bar {{ block.shopify_attributes }} aria-label="{{ block.settings.title | default: product.title | escape }}">
+  <button class="ai-sticky-bar__close-{{ ai_gen_id }}" type="button" aria-label="关闭" data-close>×</button>
+  <div class="ai-sticky-bar__inner-{{ ai_gen_id }}">
+    {% if product.featured_image %}<img class="ai-sticky-bar__image-{{ ai_gen_id }}" src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.featured_image.alt | default: product.title | escape }}" loading="lazy" width="{{ block.settings.image_size }}" height="{{ block.settings.image_size }}">{% else %}<div class="ai-sticky-bar__placeholder-{{ ai_gen_id }}">{{ 'product-apparel-1' | placeholder_svg_tag }}</div>{% endif %}
+    <div class="ai-sticky-bar__details-{{ ai_gen_id }}">
+      <h2 class="ai-sticky-bar__title-{{ ai_gen_id }}">{{ block.settings.title | default: product.title | escape }}</h2>
+      {% if block.settings.description != blank %}<p class="ai-sticky-bar__text-{{ ai_gen_id }}">{{ block.settings.description | escape }}</p>{% endif %}
+      <div class="ai-sticky-bar__price-{{ ai_gen_id }}">{{ product.selected_or_first_available_variant.price | money }}</div>
+    </div>
+    <div class="ai-sticky-bar__action-{{ ai_gen_id }}">
+      {% form 'product', product, class: 'ai-sticky-bar__form' %}
+        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+        <input type="hidden" name="quantity" value="1">
+        <button class="ai-sticky-bar__button-{{ ai_gen_id }}" type="submit" name="add" {% unless product.available %}disabled{% endunless %}>{{ block.settings.button_label | escape }}</button>
+      {% endform %}
+    </div>
+  </div>
+</aside>
+<script>
+(function(){
+  var bar=document.querySelector('.ai-sticky-bar-{{ ai_gen_id }}[data-product-sticky-bar]');
+  if(!bar)return;
+  var key='ai-sticky-dismissed-{{ ai_gen_id }}';
+  var close=bar.querySelector('[data-close]');
+  bar.hidden=true;
+  if(sessionStorage.getItem(key)==='1')return;
+  var target=document.querySelector('product-info');
+  if(!target){var productForm=document.querySelector('form[action*="/cart/add"]');if(productForm)target=productForm.closest('section')||productForm.parentElement;}
+  if(!target)target=document.querySelector('main');
+  if(target){
+    var observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(!entry.isIntersecting&&entry.boundingClientRect.top<0)bar.hidden=false;else if(entry.isIntersecting)bar.hidden=true;});},{threshold:0});
+    observer.observe(target);
+  }
+  if(close)close.addEventListener('click',function(){bar.hidden=true;sessionStorage.setItem(key,'1');});
+  var form=bar.querySelector('form');var variantInput=form&&form.querySelector('input[name="id"]');
+  var productRoot=document.querySelector('product-info')||document.querySelector('form[action*="/cart/add"]');
+  if(productRoot&&variantInput)productRoot.addEventListener('change',function(){var selected=document.querySelector('form[action*="/cart/add"] [name="id"]');if(selected&&selected.value)variantInput.value=selected.value;});
+})();
+</script>
+{% endif %}
+{% schema %}
+{
+  "name": "落地页底部加购条",
+  "settings": [
+    {"type":"header","content":"内容"},
+    {"type":"text","id":"title","label":"标题（留空使用产品名）","default":"精选产品"},
+    {"type":"textarea","id":"description","label":"文本","default":"匠心打造，满足日常烹饪所需。"},
+    {"type":"text","id":"button_label","label":"按钮文字","default":"加入购物车"},
+    {"type":"header","content":"布局"},
+    {"type":"range","id":"desktop_width_percent","label":"桌面宽度","min":50,"max":100,"step":5,"unit":"%","default":100},
+    {"type":"range","id":"image_size","label":"产品图尺寸","min":50,"max":140,"step":10,"unit":"px","default":90},
+    {"type":"range","id":"pad_vertical","label":"上下内边距","min":8,"max":40,"step":4,"unit":"px","default":20},
+    {"type":"header","content":"字体与颜色"},
+    {"type":"select","id":"heading_font","label":"标题字体类型","options":[{"value":"heading","label":"标题"},{"value":"subheading","label":"副标题"},{"value":"text","label":"文本"}],"default":"heading"},
+    {"type":"select","id":"copy_font","label":"文本字体类型","options":[{"value":"heading","label":"标题"},{"value":"subheading","label":"副标题"},{"value":"text","label":"文本"}],"default":"text"},
+    {"type":"range","id":"heading_size","label":"标题字号","min":14,"max":36,"step":2,"unit":"px","default":22},
+    {"type":"select","id":"heading_weight","label":"标题字重","options":[{"value":"400","label":"常规"},{"value":"500","label":"中等"},{"value":"600","label":"半粗"},{"value":"700","label":"粗体"}],"default":"600"},
+    {"type":"range","id":"copy_size","label":"文本字号","min":12,"max":22,"step":1,"unit":"px","default":14},
+    {"type":"range","id":"price_size","label":"价格字号","min":14,"max":32,"step":2,"unit":"px","default":20},
+    {"type":"select","id":"price_weight","label":"价格字重","options":[{"value":"400","label":"常规"},{"value":"500","label":"中等"},{"value":"600","label":"半粗"},{"value":"700","label":"粗体"}],"default":"600"},
+    {"type":"color","id":"background_color","label":"背景颜色","default":"#FFFFFF"},
+    {"type":"color","id":"heading_color","label":"标题颜色","default":"#171717"},
+    {"type":"color","id":"text_color","label":"文本与关闭按钮颜色","default":"#333333"},
+    {"type":"color","id":"price_color","label":"价格颜色","default":"#171717"},
+    {"type":"color","id":"button_color","label":"加购按钮颜色","default":"#171717"},
+    {"type":"color","id":"button_text_color","label":"按钮文字颜色","default":"#FFFFFF"}
+  ],
+  "presets": [{"name":"落地页底部加购条"}],
+  "tag": null,
+  "class": "product-sticky-bar"
+}
+{% endschema %}

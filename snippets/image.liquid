@@ -1,0 +1,76 @@
+{% doc %}
+  Renders the <img> element using provided image object
+
+  @param {object} image - image object
+  @param {number} [height] - custom image height
+  @param {string} [class] - additional classes
+  @param {string} [text_fallback] - text to display if image is blank
+  @param {boolean} [unset_image_tag] - if true, ignores the image focal point
+  @param {string} [style] - additional styles
+  @param {string} [width] - custom image width
+  @param {string} [widths] - custom image widths
+  @param {string} [sizes] - custom image sizes
+  @param {string} [loading] - custom image loading
+  @param {string} [fetch_priority] - custom image fetch priority
+  @param {string} [alt] - custom image alt
+  @param {boolean} [preload] - custom image preload
+
+  @example
+  {% render 'image', image: product.featured_image, height: 300, class: 'product-image', loading: loading, fetch_priority: fetch_priority, sizes: sizes, widths: widths %}
+{% enddoc %}
+{% if image != blank %}
+  {%- liquid
+    assign image_loading = loading | default: 'lazy'
+    if preload and loading == blank
+      assign image_loading = 'eager'
+    endif
+
+    assign fetch_priority_default = 'auto'
+    assign image_fetch_priority = fetch_priority | default: fetch_priority_default
+
+    assign alt_default = image.alt | default: 'Image'
+    assign image_alt = alt | default: alt_default
+
+    assign media_width_desktop = '100vw'
+    assign media_width_mobile = '100vw'
+
+    assign sizes_default = 'auto, (min-width: 750px) ' | append: media_width_desktop | append: ', ' | append: media_width_mobile
+    assign image_sizes = sizes | default: sizes_default
+
+    assign widths_default = '480, 750, 1100, 1500, 2000'
+    assign image_widths = widths | default: widths_default
+
+    assign requested_width = width | default: 2000 | plus: 0
+    if requested_width > 2000
+      assign requested_width = 2000
+    endif
+    if requested_width < 1
+      assign requested_width = 2000
+    endif
+  -%}
+
+  {% assign style_value = style | default: '' %}
+  {% if height != blank %}
+    {% assign style_value = style_value | append: '--image-passed-height: ' | append: height | append: ';' %}
+  {% endif %}
+
+  {% if unset_image_tag %}
+    {% assign style_value = style_value | append: 'object-position: inherit;' %}
+  {% endif %}
+
+  {{
+    image
+    | image_url: width: requested_width, format: 'webp'
+    | image_tag:
+      widths: image_widths,
+      loading: image_loading,
+      class: class,
+      sizes: image_sizes,
+      fetchpriority: image_fetch_priority,
+      style: style_value,
+      alt: image_alt,
+      preload: preload
+  }}
+{% elsif text_fallback %}
+  {{ text_fallback }}
+{% endif %}

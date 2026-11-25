@@ -1,0 +1,25 @@
+{%- liquid
+  assign products_total = cart.original_total_price
+  for item in cart.items
+    if item.variant.compare_at_price > item.original_price
+      assign compare_at_savings = item.variant.compare_at_price | minus: item.original_price | times: item.quantity
+      assign products_total = products_total | plus: compare_at_savings
+    endif
+  endfor
+  assign savings = products_total | minus: cart.total_price | at_least: 0
+-%}
+
+<dl class="cart-mobile-only cart-mobile-summary" aria-label="{{ 'content.cart.order_summary' | t }}">
+  <div>
+    <dt>{{ 'content.products' | t }}</dt>
+    <dd>{{ products_total | money }}</dd>
+  </div>
+  <div class="cart-mobile-summary__savings">
+    <dt>{{ 'content.mobile_cart.savings' | t }}</dt>
+    <dd>{% if savings > 0 %}&minus;{% endif %}{{ savings | money }}</dd>
+  </div>
+  <div class="cart-mobile-summary__subtotal">
+    <dt>{{ 'content.cart_subtotal' | t }}</dt>
+    <dd>{{ cart.total_price | money }}</dd>
+  </div>
+</dl>

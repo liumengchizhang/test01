@@ -1,0 +1,52 @@
+{%- if collection.products_count > 0 -%}
+  {%- assign carousel_id = 'CartMobile-' | append: section.id | append: '-' | append: id -%}
+  <cart-mobile-carousel class="cart-mobile-only cart-mobile-carousel" role="region" aria-labelledby="{{ carousel_id }}-title">
+    <div class="cart-mobile-carousel__header">
+      <h2 id="{{ carousel_id }}-title">{{ heading | escape }}</h2>
+      <div class="cart-mobile-carousel__controls" hidden>
+        <button type="button" data-slide="previous" aria-label="{{ 'content.slider.previous_slide' | t }}" aria-controls="{{ carousel_id }}-track">
+          <span class="svg-wrapper" aria-hidden="true">{{ 'icon-caret.svg' | inline_asset_content }}</span>
+        </button>
+        <button type="button" data-slide="next" aria-label="{{ 'content.slider.next_slide' | t }}" aria-controls="{{ carousel_id }}-track">
+          <span class="svg-wrapper" aria-hidden="true">{{ 'icon-caret.svg' | inline_asset_content }}</span>
+        </button>
+      </div>
+    </div>
+
+    <ul id="{{ carousel_id }}-track" class="cart-mobile-carousel__track focus-inset" role="list" tabindex="0" aria-labelledby="{{ carousel_id }}-title">
+      {%- for recommended_product in collection.products limit: 12 -%}
+        {%- assign variant = recommended_product.selected_or_first_available_variant -%}
+        <li class="cart-mobile-carousel__card">
+          <a class="cart-mobile-carousel__product focus-inset" href="{{ recommended_product.url }}">
+            <span class="cart-mobile-carousel__media" aria-hidden="true">
+              <span class="cart-mobile-carousel__info">i</span>
+              {%- if recommended_product.featured_image -%}
+                {{ recommended_product.featured_image | image_url: width: 480 | image_tag: alt: '', loading: 'lazy', widths: '146, 240, 360, 480', sizes: '39vw' }}
+              {%- else -%}
+                {{ 'product-apparel-2' | placeholder_svg_tag: 'placeholder-svg' }}
+              {%- endif -%}
+            </span>
+            <span class="cart-mobile-carousel__name">{{ recommended_product.title | escape }}</span>
+          </a>
+
+          {%- render 'price', product: recommended_product, show_compare_at_price: true, price_class: 'cart-mobile-carousel__price' -%}
+
+          {%- if recommended_product.available == false -%}
+            <button type="button" class="cart-mobile-add" disabled>{{ 'products.product.sold_out' | t }}</button>
+          {%- elsif recommended_product.variants.size == 1 and recommended_product.requires_selling_plan == false -%}
+            {%- assign form_id = carousel_id | append: '-' | append: recommended_product.id -%}
+            {%- form 'product', recommended_product, id: form_id, class: 'cart-mobile-carousel__form', return_to: routes.cart_url -%}
+              <input type="hidden" name="id" value="{{ variant.id }}">
+              <input type="hidden" name="quantity" value="{{ variant.quantity_rule.min | default: 1 }}">
+              <button type="submit" name="add" class="cart-mobile-add" aria-label="{{ 'products.product.add_to_cart' | t | escape }}: {{ recommended_product.title | escape }}">
+                {{- 'actions.add' | t -}}
+              </button>
+            {%- endform -%}
+          {%- else -%}
+            <a class="cart-mobile-add" href="{{ recommended_product.url }}">{{ 'products.product.choose_options' | t }}</a>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </cart-mobile-carousel>
+{%- endif -%}

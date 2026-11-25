@@ -1,0 +1,252 @@
+<huusk-multicolumn-tabs
+  style="display: contents;"
+  data-tabs-id="{{ block.id }}"
+>
+  {% render 'group',
+    children: children,
+    settings: block.settings,
+    shopify_attributes: block.shopify_attributes,
+    class: shipping_scroll_class
+  %}
+
+  <template data-tabs-template>
+    <div
+      class="huusk-multicolumn-tabs__nav"
+      data-button-style="{{ block.settings.tabs_button_style }}"
+      role="tablist"
+      aria-label="Content tabs"
+      style="
+        --tabs-bg: {{ block.settings.tabs_bg }};
+        --tabs-text: {{ block.settings.tabs_text }};
+        --tabs-border: {{ block.settings.tabs_border }};
+        --tabs-active-bg: {{ block.settings.tabs_active_bg }};
+        --tabs-active-text: {{ block.settings.tabs_active_text }};
+        --tabs-active-border: {{ block.settings.tabs_active_border }};
+        --tabs-border-width: {{ block.settings.tabs_border_width }}px;
+        --tabs-radius: {{ block.settings.tabs_radius }}px;
+        --tabs-font-size: {{ block.settings.tabs_font_size }}px;
+        --tabs-font-size-mobile: {{ block.settings.tabs_font_size_mobile }}px;
+        --tabs-font-weight: {{ block.settings.tabs_font_weight }};
+        --tabs-padding-y: {{ block.settings.tabs_padding_y }}px;
+        --tabs-padding-x: {{ block.settings.tabs_padding_x }}px;
+        --tabs-gap: {{ block.settings.tabs_gap }}px;
+        --tabs-bottom-gap: {{ block.settings.tabs_bottom_gap }}px;
+      "
+    >
+      <button type="button" role="tab">
+        {{ block.settings.multicolumn_tab_label_1 | escape }}
+      </button>
+      <button type="button" role="tab">
+        {{ block.settings.multicolumn_tab_label_2 | escape }}
+      </button>
+    </div>
+  </template>
+</huusk-multicolumn-tabs>
+
+<style>
+  .huusk-multicolumn-tabs__nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--tabs-gap, 10px);
+    width: 100%;
+    margin-block: 0 var(--tabs-bottom-gap, 20px);
+  }
+
+  .huusk-multicolumn-tabs__nav button {
+    appearance: none;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 44px;
+    max-width: 100%;
+    padding:
+      var(--tabs-padding-y, 12px)
+      var(--tabs-padding-x, 22px);
+    border:
+      var(--tabs-border-width, 1px)
+      solid var(--tabs-border, #777777);
+    border-radius: var(--tabs-radius, 0px);
+    background: var(--tabs-bg, #1a1a1a);
+    color: var(--tabs-text, #ffffff);
+    font-family: inherit;
+    font-size: var(--tabs-font-size, 16px);
+    font-weight: var(--tabs-font-weight, 500);
+    line-height: 1.3;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+  }
+
+  .huusk-multicolumn-tabs__nav
+  button[aria-selected="true"] {
+    background: var(--tabs-active-bg, #d6bc7c);
+    color: var(--tabs-active-text, #1a1a1a);
+    border-color: var(--tabs-active-border, #d6bc7c);
+  }
+
+  .huusk-multicolumn-tabs__nav[data-button-style="outline"]
+  button[aria-selected="false"] {
+    background: transparent;
+  }
+
+  .huusk-multicolumn-tabs__nav[data-button-style="underline"]
+  button {
+    background: transparent;
+    border: 0;
+    border-bottom:
+      var(--tabs-border-width, 1px)
+      solid var(--tabs-border, #777777);
+    border-radius: 0;
+  }
+
+  .huusk-multicolumn-tabs__nav[data-button-style="underline"]
+  button[aria-selected="true"] {
+    background: transparent;
+    border-bottom-color: var(--tabs-active-border, #d6bc7c);
+  }
+
+  .huusk-multicolumn-tabs__nav button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+  }
+
+  huusk-multicolumn-tabs .huusk-tab-panel[hidden] {
+    display: none !important;
+  }
+
+  @media screen and (max-width: 749px) {
+    .huusk-multicolumn-tabs__nav button {
+      font-size: var(--tabs-font-size-mobile, 14px);
+    }
+  }
+</style>
+
+<script>
+  if (!customElements.get('huusk-multicolumn-tabs')) {
+    customElements.define(
+      'huusk-multicolumn-tabs',
+      class extends HTMLElement {
+        connectedCallback() {
+          this.frame = requestAnimationFrame(() => this.initialize());
+        }
+
+        disconnectedCallback() {
+          cancelAnimationFrame(this.frame);
+          this.controller?.abort();
+        }
+
+        initialize() {
+          this.controller?.abort();
+          this.controller = new AbortController();
+          const signal = this.controller.signal;
+
+          const outerGroup = Array.from(this.children).find(
+            element => element.classList.contains('group-block')
+          );
+
+          const content = outerGroup?.querySelector(
+            ':scope > .group-block-content'
+          );
+
+          if (!content) return;
+
+          const panels = Array.from(content.children).filter(
+            element => element.classList.contains(
+              'huusk-multicolumn-panel'
+            )
+          ).slice(0, 2);
+
+          if (panels.length !== 2) return;
+
+          content.querySelector(
+            ':scope > .huusk-multicolumn-tabs__nav'
+          )?.remove();
+
+          const template = this.querySelector(
+            ':scope > template[data-tabs-template]'
+          );
+
+          if (!template) return;
+
+          const nav = template.content.firstElementChild.cloneNode(true);
+          content.insertBefore(nav, panels[0]);
+
+          const buttons = Array.from(
+            nav.querySelectorAll('[role="tab"]')
+          );
+
+          const prefix = `huusk-tabs-${this.dataset.tabsId}`;
+
+          panels.forEach((panel, index) => {
+            panel.classList.add('huusk-tab-panel');
+            panel.id = `${prefix}-panel-${index}`;
+            panel.setAttribute('role', 'tabpanel');
+            panel.setAttribute(
+              'aria-labelledby',
+              `${prefix}-tab-${index}`
+            );
+
+            buttons[index].id = `${prefix}-tab-${index}`;
+            buttons[index].setAttribute(
+              'aria-controls',
+              panel.id
+            );
+          });
+
+          let activeIndex = -1;
+
+          const activate = index => {
+            if (index === activeIndex) return;
+            activeIndex = index;
+            panels.forEach((panel, panelIndex) => {
+              const selected = panelIndex === index;
+              panel.hidden = !selected;
+              buttons[panelIndex].setAttribute(
+                'aria-selected',
+                String(selected)
+              );
+              buttons[panelIndex].tabIndex = selected ? 0 : -1;
+            });
+
+            requestAnimationFrame(() => {
+              panels[index].querySelectorAll('.swiper').forEach(
+                element => element.swiper?.update()
+              );
+            });
+          };
+
+          buttons.forEach((button, index) => {
+            button.addEventListener('click', () => activate(index), {
+              signal
+            });
+
+            button.addEventListener('keydown', event => {
+              let next = index;
+
+              if (event.key === 'ArrowRight') next = (index + 1) % 2;
+              else if (event.key === 'ArrowLeft') next = (index + 1) % 2;
+              else if (event.key === 'Home') next = 0;
+              else if (event.key === 'End') next = 1;
+              else return;
+
+              event.preventDefault();
+              activate(next);
+              buttons[next].focus();
+            }, { signal });
+          });
+
+          document.addEventListener('shopify:block:select', event => {
+            const index = panels.findIndex(
+              panel => panel === event.target ||
+                panel.contains(event.target)
+            );
+            if (index !== -1) activate(index);
+          }, { signal });
+
+          activate(0);
+        }
+      }
+    );
+  }
+</script>

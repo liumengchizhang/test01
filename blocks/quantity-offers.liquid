@@ -1,0 +1,173 @@
+{%- liquid
+  assign offer_product = closest.product
+  assign offer_variant = offer_product.selected_or_first_available_variant
+  assign offer_compare = offer_variant.compare_at_price
+  assign offer_product_label = offer_product.title | split: ' | ' | first | strip
+-%}
+{%- if offer_product != blank and offer_variant != blank and offer_product.tags contains 'show-quantity-offers' -%}
+  {{ 'quantity-offers.css' | asset_url | stylesheet_tag }}
+  {%- capture offer_discount_eligible -%}{%- render 'bundle-discount-eligible', product: offer_product -%}{%- endcapture -%}
+  {%- assign offer_discount_eligible = offer_discount_eligible | strip -%}
+  <div {{ block.shopify_attributes }} class="quantity-offers" data-quantity-offers data-product-id="{{ offer_product.id }}" data-product-form-id="product-form-{{ section.id }}" data-unit-price="{{ offer_variant.price }}" data-compare-price="{{ offer_compare | default: 0 }}" data-min="{{ offer_variant.quantity_rule.min }}" data-max="{{ offer_variant.quantity_rule.max }}" data-step="{{ offer_variant.quantity_rule.increment }}" data-inventory="{{ offer_variant.inventory_quantity }}" data-inventory-managed="{{ offer_variant.inventory_management }}" data-inventory-policy="{{ offer_variant.inventory_policy }}">
+    <fieldset class="quantity-offers__fieldset">
+      <legend class="quantity-offers__heading">{{ block.settings.heading | escape }}</legend>
+      {%- for quantity in (1..3) -%}
+        {%- assign tier_price = offer_variant.price | times: quantity -%}
+        {%- assign tier_compare = offer_compare | times: quantity -%}
+        {%- liquid
+          assign title_setting = 'tier_' | append: quantity | append: '_title'
+          assign tier_title = block.settings[title_setting]
+          assign tier_subtotal = tier_price
+          assign discount_rate = 0
+          if quantity == 2
+            assign discount_rate = block.settings.two_discount | default: 10
+          elsif quantity == 3
+            assign discount_rate = block.settings.three_discount | default: 15
+          endif
+          if offer_discount_eligible != 'true'
+            assign discount_rate = 0
+          endif
+          if discount_rate > 0
+            assign unit_discount = offer_variant.price | times: discount_rate | divided_by: 100.0 | floor
+            assign discounted_unit_price = offer_variant.price | minus: unit_discount
+            assign tier_price = discounted_unit_price | times: quantity
+            assign tier_compare = tier_subtotal
+          endif
+        -%}
+        <label class="quantity-offers__option{% if quantity == 2 %} is-popular{% endif %}{% if quantity == 2 %} is-selected{% endif %}" data-quantity-offer data-quantity="{{ quantity }}" data-discount-percent="{{ discount_rate }}">
+          <input class="quantity-offers__radio" type="radio" name="quantity-offer-{{ section.id }}-{{ block.id }}" value="{{ quantity }}" {% if quantity == 2 %}checked{% endif %}>
+          <span class="quantity-offers__radio-mark" aria-hidden="true"></span>
+          <span class="quantity-offers__copy">
+            <span class="quantity-offers__title">{% if block.settings.title_source != 'custom' %}{{ quantity }} × {{ offer_product_label | escape }}{% elsif tier_title != blank %}{{ tier_title | escape }}{% else %}{{ quantity }} {% if quantity == 1 %}{{ block.settings.single_label | escape }}{% else %}{{ block.settings.multiple_label | escape }}{% endif %}{% endif %}</span>
+            {%- if quantity == 2 and block.settings.popular_label != blank -%}<span class="quantity-offers__badge">{{ block.settings.popular_label | escape }}</span>{%- elsif quantity == 3 and block.settings.value_label != blank -%}<span class="quantity-offers__badge">{{ block.settings.value_label | escape }}</span>{%- endif -%}
+            <span class="quantity-offers__subtitle">{% if quantity == 1 %}{{ block.settings.single_subtitle | default: 'Special offer' | escape }}{% elsif quantity == 2 %}{{ block.settings.two_subtitle | escape }}{% else %}{{ block.settings.three_subtitle | escape }}{% endif %}</span>
+            {% if discount_rate > 0 %}<span class="quantity-offers__subtitle quantity-offers__saving">Buy {{ quantity }}, save an extra {{ discount_rate }}%</span>{% endif %}
+          </span>
+          <span class="quantity-offers__prices">
+            <strong data-tier-price>{{ tier_price | money }}</strong>
+            {%- if tier_compare > tier_price -%}<s data-tier-compare>{{ tier_compare | money }}</s>{%- else -%}<s data-tier-compare hidden></s>{%- endif -%}
+          </span>
+        </label>
+      {%- endfor -%}
+    </fieldset>
+    <p class="quantity-offers__note">Estimated offer prices. Final discounts applied at checkout.</p>
+  </div>
+  <script src="{{ 'quantity-offers.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Quantity offers",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Choose your quantity",
+      "info": "This block is shown only for products tagged show-quantity-offers."
+    },
+    {
+      "type": "select",
+      "id": "title_source",
+      "label": "数量卡片名称来源",
+      "options": [
+        {
+          "value": "product",
+          "label": "自动使用当前产品名称"
+        },
+        {
+          "value": "custom",
+          "label": "自定义标题（同模板共用）"
+        }
+      ],
+      "default": "product"
+    },
+    {
+      "type": "text",
+      "id": "tier_1_title",
+      "label": "1 件卡片标题",
+      "info": "填写完整标题，例如：1 把厨刀。留空时使用下方名称自动生成。",
+      "visible_if": "{{ block.settings.title_source == 'custom' }}"
+    },
+    {
+      "type": "text",
+      "id": "tier_2_title",
+      "label": "2 件卡片标题",
+      "info": "填写完整标题，例如：双刀组合。文字不改变实际购买数量。",
+      "visible_if": "{{ block.settings.title_source == 'custom' }}"
+    },
+    {
+      "type": "text",
+      "id": "tier_3_title",
+      "label": "3 件卡片标题",
+      "info": "填写完整标题，例如：家庭三件装。文字不改变实际购买数量。",
+      "visible_if": "{{ block.settings.title_source == 'custom' }}"
+    },
+    {
+      "type": "text",
+      "id": "single_label",
+      "label": "Singular item label",
+      "default": "knife",
+      "visible_if": "{{ block.settings.title_source == 'custom' }}"
+    },
+    {
+      "type": "text",
+      "id": "multiple_label",
+      "label": "Plural item label",
+      "default": "knives",
+      "visible_if": "{{ block.settings.title_source == 'custom' }}"
+    },
+    {
+      "type": "text",
+      "id": "single_subtitle",
+      "label": "1 item subtitle",
+      "info": "填写真实促销原因，例如活动名称。留空显示 Special offer；划线价来自商品后台原价。"
+    },
+    {
+      "type": "text",
+      "id": "two_subtitle",
+      "label": "2 items subtitle"
+    },
+    {
+      "type": "text",
+      "id": "three_subtitle",
+      "label": "3 items subtitle"
+    },
+    {
+      "type": "range",
+      "id": "two_discount",
+      "label": "2 件额外优惠（展示）",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 10,
+      "info": "需与后台实际折扣一致，此设置仅计算展示价格。"
+    },
+    {
+      "type": "range",
+      "id": "three_discount",
+      "label": "3 件额外优惠（展示）",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 15,
+      "info": "需与后台实际折扣一致，此设置仅计算展示价格。"
+    },
+    {
+      "type": "text",
+      "id": "popular_label",
+      "label": "2 item badge",
+      "default": "Most Popular"
+    },
+    {
+      "type": "text",
+      "id": "value_label",
+      "label": "3 item badge",
+      "default": "Best Value"
+    }
+  ]
+}
+{% endschema %}

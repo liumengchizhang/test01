@@ -1,0 +1,224 @@
+{% liquid
+  assign s = block.settings
+  assign ratio = s.ratio
+  if ratio == 'adapt'
+    assign ratio = s.image.aspect_ratio | default: 1
+  endif
+%}
+<huusk-flip-image class="hfi" style="--hfi-height:{% if s.custom_height %}{{ s.height }}px{% else %}auto{% endif %};--hfi-mobile-height:{% if s.custom_height %}{{ s.mobile_height }}px{% else %}auto{% endif %};--hfi-ratio:{{ ratio }};--hfi-radius:{{ s.radius }}px;--hfi-speed:{{ s.speed }}ms;--hfi-bg:{{ s.background }};--hfi-color:{{ s.text_color }};--hfi-pad:{{ s.padding }}px;--hfi-size:{{ s.font_size }}px" {{ block.shopify_attributes }}>
+  <div class="hfi__scene">
+    <div class="hfi__turn">
+      <div class="hfi__face hfi__front">
+        {% if s.image != blank %}
+          {{ s.image | image_url: width: 1600 | image_tag: widths: '320, 480, 720, 960, 1200, 1600', sizes: '(min-width: 990px) 33vw, 100vw', loading: 'lazy', class: 'hfi__image' }}
+        {% else %}
+          {{ 'image' | placeholder_svg_tag: 'hfi__image' }}
+        {% endif %}
+        {% if s.front_title != blank %}
+          {% assign title_position = s.front_title_position | split: ' ' %}
+          <div class="hfi__title-wrap" style="--hfi-title-v:{{ title_position.first }};--hfi-title-h:{{ title_position.last }};--hfi-title-font:{{ s.front_title_font }};--hfi-title-size:{{ s.front_title_size }}px;--hfi-title-mobile:{{ s.front_title_mobile }}px;--hfi-title-weight:{{ s.front_title_weight }};--hfi-title-color:{{ s.front_title_color }};--hfi-title-y:{{ s.front_title_offset_y | default: 0 }}px;--hfi-title-y-mobile:{{ s.front_title_offset_y_mobile | default: 0 }}px;--hfi-title-inset:{{ s.front_title_inset }}px"><h3 class="hfi__title">{{ s.front_title | escape }}</h3></div>
+        {% endif %}
+      </div>
+      <div class="hfi__face hfi__back" aria-hidden="true">
+        <div class="hfi__copy">
+          {% content_for 'blocks' %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="hfi__toggle{% if s.flip_hint != blank %} hfi__toggle--hint{% endif %}" type="button" aria-expanded="false" aria-label="{{ s.toggle_label | escape }}"><span class="hfi__icon" aria-hidden="true">{% if s.flip_icon_upload != blank %}{{ s.flip_icon_upload | image_url: width: 96 | image_tag: loading: 'lazy', alt: '' }}{% else %}<svg viewBox="0 0 20 20" fill="currentColor" focusable="false">{% render 'icon', icon: s.flip_icon %}</svg>{% endif %}</span>{% if s.flip_hint != blank %}<span class="hfi__hint" style="--hfi-hint-size:{{ s.flip_hint_size | default: 12 }}px;--hfi-hint-color:{{ s.flip_hint_color | default: '#FFFFFF' }};color:{{ s.flip_hint_color | default: '#FFFFFF' }} !important;-webkit-text-fill-color:{{ s.flip_hint_color | default: '#FFFFFF' }} !important;" aria-hidden="true">{{ s.flip_hint | escape }}</span>{% endif %}</button>
+</huusk-flip-image>
+
+{% stylesheet %}
+  huusk-flip-image.hfi{display:block;position:relative;width:100%;min-width:0;color:var(--hfi-color);isolation:isolate}
+  .hfi__scene{perspective:1200px;aspect-ratio:var(--hfi-ratio);width:100%;height:var(--hfi-height)}
+  .hfi__turn{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform var(--hfi-speed) cubic-bezier(.55,.02,.85,.55)}
+  .hfi[data-flipped] .hfi__turn{transform:rotateY(180deg)}
+  .hfi__face{position:absolute;inset:0;border-radius:var(--hfi-radius);overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .hfi__front{background:var(--hfi-bg)}
+  .hfi__title-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:var(--hfi-title-v);align-items:var(--hfi-title-h);padding:var(--hfi-title-inset);box-sizing:border-box;pointer-events:none;overflow:hidden}
+  .hfi__title-wrap[style*="--hfi-title-h:center"]{text-align:center}
+  .hfi__title-wrap[style*="--hfi-title-h:flex-end"]{text-align:right}
+  .hfi__title-wrap .hfi__title{margin:0;max-width:100%;font-family:var(--hfi-title-font);font-size:var(--hfi-title-size);font-weight:var(--hfi-title-weight);line-height:1.2;color:var(--hfi-title-color);overflow-wrap:anywhere;text-transform:none;transform:translateY(var(--hfi-title-y,0px))}
+  @media(max-width:749px){.hfi__title-wrap .hfi__title{font-size:var(--hfi-title-mobile);transform:translateY(var(--hfi-title-y-mobile,0px))}}
+  .hfi__image{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+  .hfi__back{transform:rotateY(180deg);background:var(--hfi-bg);color:var(--hfi-color);padding:var(--hfi-pad);padding-bottom:max(var(--hfi-pad),56px);box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;font-family:var(--font-body--family,inherit);font-size:var(--hfi-size);line-height:1.5;text-align:left;pointer-events:none}
+  .hfi[data-flipped] .hfi__back{pointer-events:auto}
+  .hfi__copy{overflow-wrap:anywhere}
+  .hfi__copy h3{font-family:var(--font-heading--family,inherit);font-size:1.3em;line-height:1.25;color:inherit;margin:0 0 12px}
+  .hfi__copy p{margin:0 0 12px;color:inherit}
+  .hfi__copy a{color:inherit}
+  .hfi__toggle{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:2;display:grid;place-items:center;width:48px;height:48px;min-height:44px;min-width:44px;border:0;border-radius:50%;box-shadow:none;padding:12px;background:rgb(0 0 0 / 50%);color:#fff;cursor:pointer}
+  .hfi__icon,.hfi__icon svg,.hfi__icon img{display:block;width:24px;height:24px;object-fit:contain}
+  .hfi__toggle{visibility:visible;transition:visibility 0s}
+  .hfi[data-flipping] .hfi__toggle{visibility:hidden;pointer-events:none}
+  @media(max-width:749px){.hfi__scene{height:var(--hfi-mobile-height)}}
+  .hfi__toggle:focus-visible{outline:3px solid var(--hfi-color);outline-offset:3px}
+  @media(prefers-reduced-motion:reduce){.hfi__turn{transition:none}}
+  /* 翻转背面：透明轨道、灰色滑块 */
+  .hfi__back,
+  .hfi__back * {
+    scrollbar-color: #888 transparent;
+  }
+
+  @supports selector(::-webkit-scrollbar) {
+    .hfi__back,
+    .hfi__back * {
+      scrollbar-color: auto;
+    }
+
+    .hfi__back::-webkit-scrollbar,
+    .hfi__back *::-webkit-scrollbar {
+      width: 10px;
+      background: transparent;
+    }
+
+    .hfi__back::-webkit-scrollbar-track,
+    .hfi__back *::-webkit-scrollbar-track,
+    .hfi__back::-webkit-scrollbar-track-piece,
+    .hfi__back *::-webkit-scrollbar-track-piece,
+    .hfi__back::-webkit-scrollbar-corner,
+    .hfi__back *::-webkit-scrollbar-corner {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    .hfi__back::-webkit-scrollbar-thumb,
+    .hfi__back *::-webkit-scrollbar-thumb {
+      background: #888;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      border-radius: 8px;
+    }
+
+    .hfi__back::-webkit-scrollbar-button,
+    .hfi__back *::-webkit-scrollbar-button {
+      display: none;
+      background-color: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    .hfi__back::-webkit-scrollbar-button:single-button:vertical,
+    .hfi__back *::-webkit-scrollbar-button:single-button:vertical {
+      display: block;
+      height: 12px;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: 8px 6px;
+    }
+
+    .hfi__back::-webkit-scrollbar-button:single-button:vertical:decrement,
+    .hfi__back *::-webkit-scrollbar-button:single-button:vertical:decrement {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 6'%3E%3Cpath fill='%23888' d='M4 0 8 6H0Z'/%3E%3C/svg%3E");
+    }
+
+    .hfi__back::-webkit-scrollbar-button:single-button:vertical:increment,
+    .hfi__back *::-webkit-scrollbar-button:single-button:vertical:increment {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 6'%3E%3Cpath fill='%23888' d='m0 0 4 6 4-6Z'/%3E%3C/svg%3E");
+    }
+  }
+    .hfi .hfi__toggle.hfi__toggle--hint{bottom:30px}
+    .hfi__hint{position:absolute;top:auto;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);font-family:var(--font-body--family,inherit);font-size:var(--hfi-hint-size,12px) !important;font-weight:400;line-height:1.3;letter-spacing:normal;text-transform:none;color:var(--hfi-hint-color,#fff) !important;display:block !important;width:max-content !important;max-width:none !important;white-space:nowrap !important;writing-mode:horizontal-tb !important;word-break:normal !important;overflow-wrap:normal !important}
+    .hfi:has(.hfi__toggle--hint) .hfi__back{padding-bottom:max(var(--hfi-pad),84px)}
+ 
+    /* 翻到背面后隐藏提示文字，仅保留图标 */
+   .hfi[data-flipped] .hfi__hint {
+    display: none !important;
+  }
+
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('huusk-flip-image')) {
+    customElements.define('huusk-flip-image', class extends HTMLElement {
+      connectedCallback() {
+        if (this.ready) return;
+        this.ready = true;
+        const toggle = this.querySelector('.hfi__toggle');
+        const front = this.querySelector('.hfi__front');
+        const back = this.querySelector('.hfi__back');
+        this.setFlip = (open, animate = true) => {
+          if (open === this.hasAttribute('data-flipped')) return;
+          clearTimeout(this.flipTimer);
+          if (animate) {
+            this.setAttribute('data-flipping', '');
+            toggle.setAttribute('aria-disabled', 'true');
+            const duration = matchMedia('(prefers-reduced-motion:reduce)').matches ? 0 : parseFloat(getComputedStyle(this).getPropertyValue('--hfi-speed')) || 600;
+            this.flipTimer = setTimeout(() => {
+              this.removeAttribute('data-flipping');
+              toggle.removeAttribute('aria-disabled');
+            }, duration + 500);
+          }
+          this.toggleAttribute('data-flipped', open);
+          const hint = this.querySelector('.hfi__hint');
+          if (hint) {
+            hint.style.setProperty(
+              'display',
+              open ? 'none' : 'block',
+              'important'
+            );
+          }
+          toggle.setAttribute('aria-expanded', String(open));
+          front.setAttribute('aria-hidden', String(open));
+          back.setAttribute('aria-hidden', String(!open));
+          front.inert = open;
+          back.inert = !open;
+        };
+        const open = this.hasAttribute('data-flipped');
+        front.inert = open;
+        back.inert = !open;
+        toggle.addEventListener('click', () => {
+          if (!this.hasAttribute('data-flipping')) this.setFlip(!this.hasAttribute('data-flipped'));
+        });
+        this.addEventListener('shopify:block:select', (event) => {
+          if (back.contains(event.target)) this.setFlip(true, false);
+        });
+      }
+      disconnectedCallback() {
+        clearTimeout(this.flipTimer);
+        this.removeAttribute('data-flipping');
+        this.querySelector('.hfi__toggle')?.removeAttribute('aria-disabled');
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Huusk 轻量翻转图片",
+  "tag": null,
+  "blocks": [{"type":"group"}],
+  "settings": [
+    {"type":"text","id":"front_title","label":"正面标题"},
+    {"type":"select","id":"front_title_font","label":"正面标题字体","options":[{"value":"var(--font-heading--family)","label":"主题标题字体"},{"value":"var(--font-subheading--family)","label":"主题副标题字体"},{"value":"var(--font-body--family)","label":"主题正文字体"}],"default":"var(--font-heading--family)"},
+    {"type":"range","id":"front_title_size","label":"正面标题字号（桌面）","min":12,"max":72,"step":1,"unit":"px","default":28},
+    {"type":"range","id":"front_title_mobile","label":"正面标题字号（手机）","min":12,"max":48,"step":1,"unit":"px","default":22},
+    {"type":"select","id":"front_title_weight","label":"正面标题粗细","options":[{"value":"400","label":"常规"},{"value":"500","label":"中等"},{"value":"600","label":"半粗"},{"value":"700","label":"粗体"}],"default":"600"},
+    {"type":"color","id":"front_title_color","label":"正面标题颜色","default":"#FFFFFF"},
+    {"type":"select","id":"front_title_position","label":"正面标题位置","options":[{"value":"flex-start flex-start","label":"上左"},{"value":"flex-start center","label":"上中"},{"value":"flex-start flex-end","label":"上右"},{"value":"center flex-start","label":"中左"},{"value":"center center","label":"中中"},{"value":"center flex-end","label":"中右"},{"value":"flex-end flex-start","label":"下左"},{"value":"flex-end center","label":"下中"},{"value":"flex-end flex-end","label":"下右"}],"default":"flex-start center"},
+    {"type":"range","id":"front_title_inset","label":"正面标题边距","min":8,"max":64,"step":2,"unit":"px","default":24},
+    {"type":"range","id":"front_title_offset_y","label":"标题上下微调（桌面）","info":"以九宫格位置为基准，负数向上，正数向下。","min":-100,"max":100,"step":2,"unit":"px","default":0},
+    {"type":"range","id":"front_title_offset_y_mobile","label":"标题上下微调（手机）","info":"独立于桌面；负数向上，正数向下。","min":-100,"max":100,"step":2,"unit":"px","default":0},
+    {"type":"image_picker","id":"image","label":"正面图片"},
+    {"type":"select","id":"flip_icon","label":"翻转图标（主题图标库）","options":[{"value":"none","label":"t:options.none"},{"value":"security","label":"t:options.security"},{"value":"alert","label":"t:options.alert"},{"value":"shopping-bag","label":"t:options.shopping_bag"},{"value":"cart","label":"t:options.cart"},{"value":"apple","label":"t:options.apple"},{"value":"arrow","label":"t:options.arrow"},{"value":"arrow_long","label":"t:options.arrow"},{"value":"banana","label":"t:options.banana"},{"value":"bottle","label":"t:options.bottle"},{"value":"box","label":"t:options.box"},{"value":"carrot","label":"t:options.carrot"},{"value":"circle","label":"t:options.circle"},{"value":"chat_bubble","label":"t:options.chat_bubble"},{"value":"check_mark","label":"t:options.check_mark"},{"value":"clipboard","label":"t:options.clipboard"},{"value":"dairy","label":"t:options.dairy"},{"value":"dairy_free","label":"t:options.dairy_free"},{"value":"double_chevron","label":"Double chevron"},{"value":"dryer","label":"t:options.dryer"},{"value":"eye","label":"t:options.eye"},{"value":"facebook","label":"t:options.facebook"},{"value":"fire","label":"t:options.fire"},{"value":"gluten_free","label":"t:options.gluten_free"},{"value":"heart","label":"t:options.heart"},{"value":"instagram","label":"t:options.instagram"},{"value":"iron","label":"t:options.iron"},{"value":"leaf","label":"t:options.leaf"},{"value":"leather","label":"t:options.leather"},{"value":"lightning_bolt","label":"t:options.lightning_bolt"},{"value":"lipstick","label":"t:options.lipstick"},{"value":"lock","label":"t:options.lock"},{"value":"map_pin","label":"t:options.map_pin"},{"value":"nut_free","label":"t:options.nut_free"},{"value":"pants","label":"t:options.pants"},{"value":"paw_print","label":"t:options.paw_print"},{"value":"pepper","label":"t:options.pepper"},{"value":"perfume","label":"t:options.perfume"},{"value":"pinterest","label":"t:options.pinterest"},{"value":"plane","label":"t:options.plane"},{"value":"plant","label":"t:options.plant"},{"value":"plus","label":"Plus"},{"value":"price_tag","label":"t:options.price_tag"},{"value":"question_mark","label":"t:options.question_mark"},{"value":"recycle","label":"t:options.recycle"},{"value":"return","label":"t:options.return"},{"value":"ruler","label":"t:options.ruler"},{"value":"serving_dish","label":"t:options.serving_dish"},{"value":"shirt","label":"t:options.shirt"},{"value":"shoe","label":"t:options.shoe"},{"value":"silhouette","label":"t:options.silhouette"},{"value":"snapchat","label":"t:options.snapchat"},{"value":"snowflake","label":"t:options.snowflake"},{"value":"star","label":"t:options.star"},{"value":"stopwatch","label":"t:options.stopwatch"},{"value":"tiktok","label":"t:options.tiktok"},{"value":"truck","label":"t:options.truck"},{"value":"tumblr","label":"t:options.tumblr"},{"value":"twitter","label":"t:options.twitter"},{"value":"vimeo","label":"t:options.vimeo"},{"value":"washing","label":"t:options.washing"}],"default":"arrow"},
+    {"type":"image_picker","id":"flip_icon_upload","label":"上传翻转图标（优先于图标库）"},
+    {"type":"checkbox","id":"custom_height","label":"启用自定义卡片高度","default":false},
+    {"type":"range","id":"height","label":"桌面卡片高度","min":180,"max":900,"step":10,"unit":"px","default":400},
+    {"type":"range","id":"mobile_height","label":"手机卡片高度","min":180,"max":900,"step":10,"unit":"px","default":360},
+    {"type":"select","id":"ratio","label":"图片比例","options":[{"value":"adapt","label":"跟随图片"},{"value":"1","label":"正方形"},{"value":"1.333333","label":"横向 4:3"},{"value":"0.8","label":"竖向 4:5"}],"default":"adapt"},
+    {"type":"color","id":"background","label":"背面背景色","default":"#1A1A1A"},
+    {"type":"color","id":"text_color","label":"背面文字色","default":"#FFFFFF"},
+    {"type":"range","id":"font_size","label":"正文字号","min":12,"max":28,"step":1,"unit":"px","default":16},
+    {"type":"range","id":"padding","label":"背面内边距","min":12,"max":48,"step":2,"unit":"px","default":24},
+    {"type":"range","id":"radius","label":"圆角","min":0,"max":32,"step":1,"unit":"px","default":8},
+    {"type":"range","id":"speed","label":"翻转时长","min":200,"max":1000,"step":50,"unit":"ms","default":600},
+    {"type":"text","id":"flip_hint","label":"翻转图标下方文字","default":"Tap to flip"},
+    {"type":"range","id":"flip_hint_size","label":"图标下方文字字号","min":10,"max":24,"step":1,"unit":"px","default":12},
+    {"type":"color","id":"flip_hint_color","label":"图标下方文字颜色","default":"#FFFFFF"},
+    {"type":"text","id":"toggle_label","label":"翻转按钮无障碍说明","default":"Flip card"}
+  ],
+  "presets": [{"name":"Huusk 轻量翻转图片","blocks":[{"type":"group"}]}]
+}
+{% endschema %}

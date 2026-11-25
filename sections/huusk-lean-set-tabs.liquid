@@ -1,0 +1,668 @@
+<huusk-lean-sets class="hlsets color-{{ section.settings.color_scheme }}" data-style="{{ section.settings.tab_style }}" style="--hs-max:{{ section.settings.max_width }}px;--hs-card:{{ section.settings.card_bg }};--hs-title:{{ section.settings.title_color }};--hs-desc:{{ section.settings.description_color }};--hs-eye:{{ section.settings.eyebrow_color }};--hs-bg:{{ section.settings.tab_bg }};--hs-text:{{ section.settings.tab_text }};--hs-border:{{ section.settings.tab_border }};--hs-active:{{ section.settings.active_bg }};--hs-active-text:{{ section.settings.active_text }};--hs-active-border:{{ section.settings.active_border }};--hs-size:{{ section.settings.tab_size }}px;--hs-mobile-size:{{ section.settings.tab_mobile_size }}px;--hs-radius:{{ section.settings.tab_radius }}px;--hs-bw:{{ section.settings.tab_border_width }}px;--hs-x:{{ section.settings.tab_x }}px;--hs-y:{{ section.settings.tab_y }}px;--hs-gap:{{ section.settings.tab_gap }}px;--hs-bottom:{{ section.settings.tab_bottom }}px;--hs-heading:{{ section.settings.title_size }}px;--hs-body:{{ section.settings.body_size }}px;--hs-price:{{ section.settings.price_size }}px;--hs-colgap:{{ section.settings.card_gap }}px;--hs-rowgap:{{ section.settings.row_gap }}px;--hs-card-radius:{{ section.settings.card_radius }}px;--hs-button:{{ section.settings.button_bg }};--hs-button-text:{{ section.settings.button_text }};--hs-gradient:{{ section.settings.button_gradient | default: section.settings.button_bg }};padding-block:{{ section.settings.padding_top }}px {{ section.settings.padding_bottom }}px;">
+  <div class="hlsets__inner">
+    <div class="hlsets__tabs" role="tablist" aria-label="{{ section.settings.tab_1 | escape }} / {{ section.settings.tab_2 | escape }}">
+      {% for number in (1..2) %}
+        {% assign label_key = 'tab_' | append: number %}
+        <button type="button" role="tab" id="hs-tab-{{ section.id }}-{{ number }}" aria-controls="hs-panel-{{ section.id }}-{{ number }}" aria-selected="{% if number == 1 %}true{% else %}false{% endif %}" tabindex="{% if number == 1 %}0{% else %}-1{% endif %}" data-hs-tab="{{ number }}">{{ section.settings[label_key] | escape }}</button>
+      {% endfor %}
+    </div>
+    {% for number in (1..2) %}
+      {% assign panel_key = number | append: '' %}
+      <div class="hlsets__panel" id="hs-panel-{{ section.id }}-{{ number }}" role="tabpanel" aria-labelledby="hs-tab-{{ section.id }}-{{ number }}" data-hs-panel="{{ number }}" {% if number == 2 %}hidden{% endif %}>
+        {% for block in section.blocks %}
+          {% if block.settings.panel == panel_key %}
+            <article class="hlsets__card" {{ block.shopify_attributes }}>
+              {% if block.settings.image != blank %}<div class="hlsets__media">{{ block.settings.image | image_url: width: 1200 | image_tag: loading: 'lazy', widths: '360, 540, 720, 960, 1200', sizes: '(min-width: 750px) 33vw, 100vw' }}</div>{% endif %}
+              <div class="hlsets__body">
+                <div class="hlsets__eyebrow">{{ block.settings.eyebrow }}</div>
+                {% if block.settings.title != blank %}<h3>{{ block.settings.title | escape }}</h3>{% endif %}
+                <div class="hlsets__description">{{ block.settings.description }}</div>
+                <div class="hlsets__prices">
+                  {% if block.settings.original_price != blank %}
+                     <span class="hlsets__original">
+                        {{ block.settings.original_price | escape }}
+                      </span>
+                    {% endif %}
+                    <span class="hlsets__price">
+                      {{ block.settings.price | escape }}
+                    </span>
+                  </div>
+                {% if block.settings.button_label != blank and block.settings.link != blank %}<a class="hlsets__button" href="{{ block.settings.link }}">{{ block.settings.button_label | escape }}</a>{% endif %}
+                {% if block.settings.icon != 'none' and block.settings.icon != blank %}<div class="hlsets__icon">{% render 'icon-or-image', icon: block.settings.icon, width: 24 %}</div>{% endif %}
+              </div>
+            </article>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+</huusk-lean-sets>
+<style>
+.hlsets{display:block;width:100%;box-sizing:border-box;background:var(--color-background);color:var(--color-foreground)}.hlsets *{box-sizing:border-box}.hlsets__inner{width:min(var(--hs-max),100% - 40px);margin-inline:auto}.hlsets__tabs{display:flex;justify-content:center;flex-wrap:wrap;gap:var(--hs-gap);margin-bottom:var(--hs-bottom)}.hlsets__tabs button{appearance:none;font:inherit;font-size:var(--hs-size);font-weight:500;line-height:1.3;padding:var(--hs-y) var(--hs-x);min-height:44px;max-width:100%;border:var(--hs-bw) solid var(--hs-border);border-radius:var(--hs-radius);background:var(--hs-bg);color:var(--hs-text);cursor:pointer}.hlsets__tabs button[aria-selected=true]{background:var(--hs-active);color:var(--hs-active-text);border-color:var(--hs-active-border)}.hlsets[data-style=outline] button[aria-selected=false]{background:transparent}.hlsets[data-style=underline] .hlsets__tabs button{background:transparent;border:0;border-bottom:var(--hs-bw) solid var(--hs-border);border-radius:0}.hlsets[data-style=underline] button[aria-selected=true]{border-bottom-color:var(--hs-active-border)}.hlsets__tabs button:focus-visible,.hlsets__button:focus-visible{outline:2px solid currentColor;outline-offset:4px}.hlsets__panel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--hs-rowgap) var(--hs-colgap)}.hlsets__panel[hidden]{display:none!important}.hlsets__card{min-width:0;overflow:hidden;display:flex;flex-direction:column;border-radius:var(--hs-card-radius);background:var(--hs-card);padding-block:30px}.hlsets__media img{display:block;width:100%;height:auto}.hlsets__body{padding:10px 20px 0;display:flex;flex-direction:column;gap:5px;flex:1}.hlsets__body p{margin:0}.hlsets__eyebrow{color:var(--hs-eye);font-size:var(--hs-body)}.hlsets__body h3{font-family:var(--font-heading--family);font-size:var(--hs-heading);line-height:1.2;color:var(--hs-title);margin:0}.hlsets__description{font-size:var(--hs-body);color:var(--hs-desc);padding-bottom:10px}.hlsets__prices{display:flex;align-items:flex-end;flex-wrap:wrap;gap:8px;color:var(--hs-title)}.hlsets__price{font-size:var(--hs-price);font-weight:700;line-height:1.3}.hlsets__original{font-size:16px;text-decoration:line-through;opacity:.8}.hlsets__button{align-self:flex-start;margin-top:10px;border-radius:100px;padding:10px 20px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;background:var(--hs-button);background:var(--hs-gradient);color:var(--hs-button-text);text-decoration:none;font-size:14px;line-height:1.3}.hlsets__icon{margin-top:12px}.hlsets__icon:empty{display:none}@media(max-width:749px){.hlsets__panel{grid-template-columns:minmax(0,1fr)}.hlsets__tabs button{font-size:var(--hs-mobile-size)}}
+</style>
+<script>
+if(!customElements.get('huusk-lean-sets'))customElements.define('huusk-lean-sets',class extends HTMLElement{
+connectedCallback(){this.abort?.abort();this.abort=new AbortController();const signal=this.abort.signal;this.tabs=[...this.querySelectorAll('[data-hs-tab]')];this.panels=[...this.querySelectorAll('[data-hs-panel]')];this.addEventListener('click',e=>{const t=e.target.closest('[data-hs-tab]');if(t)this.select(t.dataset.hsTab)},{signal});this.addEventListener('keydown',e=>{const t=e.target.closest('[data-hs-tab]');if(!t)return;const k=e.key;if(!['ArrowLeft','ArrowRight','Home','End'].includes(k))return;e.preventDefault();const n=k==='Home'?'1':k==='End'?'2':t.dataset.hsTab==='1'?'2':'1';this.select(n);this.tabs.find(x=>x.dataset.hsTab===n).focus()},{signal});document.addEventListener('shopify:block:select',e=>{const p=e.target.closest('[data-hs-panel]');if(p&&this.contains(p))this.select(p.dataset.hsPanel)},{signal})}
+select(n){this.tabs.forEach(t=>{const on=t.dataset.hsTab===n;t.setAttribute('aria-selected',on);t.tabIndex=on?0:-1});this.panels.forEach(p=>p.hidden=p.dataset.hsPanel!==n)}
+disconnectedCallback(){this.abort?.abort()}
+});
+</script>
+{% schema %}
+{
+  "name": "Huusk 轻量套装切换",
+  "tag": "section",
+  "class": "section-wrapper",
+  "max_blocks": 6,
+  "settings": [
+    {
+      "type": "text",
+      "id": "tab_1",
+      "label": "第一个标签文字",
+      "default": "Kitchen Sets"
+    },
+    {
+      "type": "text",
+      "id": "tab_2",
+      "label": "第二个标签文字",
+      "default": "Outdoor Sets"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "区域配色",
+      "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "最大宽度",
+      "min": 1000,
+      "max": 1600,
+      "step": 10,
+      "default": 1400,
+      "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "card_bg",
+      "label": "卡片背景",
+      "default": "#886a4c"
+    },
+    {
+      "type": "color",
+      "id": "eyebrow_color",
+      "label": "编号文字颜色",
+      "default": "#be925b"
+    },
+    {
+      "type": "color",
+      "id": "description_color",
+      "label": "说明文字颜色",
+      "default": "#aca9a4"
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "标题及售价颜色",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "tab_bg",
+      "label": "未选中标签背景",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "tab_text",
+      "label": "未选中标签文字",
+      "default": "#d1d0ce"
+    },
+    {
+      "type": "color",
+      "id": "tab_border",
+      "label": "未选中标签边框",
+      "default": "#777777"
+    },
+    {
+      "type": "color",
+      "id": "active_bg",
+      "label": "选中标签背景",
+      "default": "#d4d0c9"
+    },
+    {
+      "type": "color",
+      "id": "active_text",
+      "label": "选中标签文字",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "active_border",
+      "label": "选中标签边框",
+      "default": "#d4d0c9"
+    },
+    {
+      "type": "select",
+      "id": "tab_style",
+      "label": "标签样式",
+      "options": [
+        {
+          "value": "filled",
+          "label": "实心"
+        },
+        {
+          "value": "outline",
+          "label": "描边"
+        },
+        {
+          "value": "underline",
+          "label": "下划线"
+        }
+      ],
+      "default": "filled"
+    },
+    {
+      "type": "range",
+      "id": "tab_size",
+      "label": "标签桌面字号",
+      "min": 10,
+      "max": 32,
+      "step": 1,
+      "default": 16,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "tab_mobile_size",
+      "label": "标签手机字号",
+      "min": 10,
+      "max": 28,
+      "step": 1,
+      "default": 14,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "tab_radius",
+      "label": "标签圆角",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "default": 50,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "tab_border_width",
+      "label": "标签边框粗细",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "default": 1,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "tab_x",
+      "label": "标签左右内边距",
+      "min": 4,
+      "max": 60,
+      "step": 1,
+      "default": 27,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "tab_y",
+      "label": "标签上下内边距",
+      "min": 4,
+      "max": 30,
+      "step": 1,
+      "default": 8,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "tab_gap",
+      "label": "标签间距",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "default": 10,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "tab_bottom",
+      "label": "标签下方间距",
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "default": 20,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "label": "卡片标题字号",
+      "min": 16,
+      "max": 36,
+      "step": 1,
+      "default": 24,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "body_size",
+      "label": "说明文字字号",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "default": 14,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "price_size",
+      "label": "售价字号",
+      "min": 18,
+      "max": 40,
+      "step": 1,
+      "default": 24,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "card_gap",
+      "label": "卡片横向间距",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "default": 20,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "row_gap",
+      "label": "卡片纵向间距",
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "default": 30,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "label": "卡片圆角",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "default": 15,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "区域顶部间距",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "区域底部间距",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 14,
+      "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "button_bg",
+      "label": "加购按钮底色",
+      "default": "#d6bc7c"
+    },
+    {
+      "type": "color_background",
+      "id": "button_gradient",
+      "label": "加购按钮渐变",
+      "default": "linear-gradient(90deg, #ded3a0 0%, #ba823e 100%)"
+    },
+    {
+      "type": "color",
+      "id": "button_text",
+      "label": "加购按钮文字",
+      "default": "#1a1a1a"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "set_card",
+      "name": "套装卡片",
+      "settings": [
+        {
+          "type": "select",
+          "id": "panel",
+          "label": "所属标签",
+          "options": [
+            {
+              "value": "1",
+              "label": "第一个标签"
+            },
+            {
+              "value": "2",
+              "label": "第二个标签"
+            }
+          ],
+          "default": "1"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "套装图片"
+        },
+        {
+          "type": "richtext",
+          "id": "eyebrow",
+          "label": "编号和小标题"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "标题"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "说明"
+        },
+        {
+          "type": "text",
+          "id": "price",
+          "label": "售价文字"
+        },
+        {
+          "type": "text",
+          "id": "original_price",
+          "label": "划线原价文字"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "按钮文字",
+          "default": "ADD TO CART"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "按钮链接"
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "t:settings.icon",
+          "options": [
+            {
+              "value": "none",
+              "label": "t:options.none"
+            },
+            {
+              "value": "security",
+              "label": "t:options.security"
+            },
+            {
+              "value": "alert",
+              "label": "t:options.alert"
+            },
+            {
+              "value": "shopping-bag",
+              "label": "t:options.shopping_bag"
+            },
+            {
+              "value": "cart",
+              "label": "t:options.cart"
+            },
+            {
+              "value": "apple",
+              "label": "t:options.apple"
+            },
+            {
+              "value": "arrow",
+              "label": "t:options.arrow"
+            },
+            {
+              "value": "arrow_long",
+              "label": "t:options.arrow"
+            },
+            {
+              "value": "banana",
+              "label": "t:options.banana"
+            },
+            {
+              "value": "bottle",
+              "label": "t:options.bottle"
+            },
+            {
+              "value": "box",
+              "label": "t:options.box"
+            },
+            {
+              "value": "carrot",
+              "label": "t:options.carrot"
+            },
+            {
+              "value": "circle",
+              "label": "t:options.circle"
+            },
+            {
+              "value": "chat_bubble",
+              "label": "t:options.chat_bubble"
+            },
+            {
+              "value": "check_mark",
+              "label": "t:options.check_mark"
+            },
+            {
+              "value": "clipboard",
+              "label": "t:options.clipboard"
+            },
+            {
+              "value": "dairy",
+              "label": "t:options.dairy"
+            },
+            {
+              "value": "dairy_free",
+              "label": "t:options.dairy_free"
+            },
+            {
+              "value": "double_chevron",
+              "label": "Double chevron"
+            },
+            {
+              "value": "dryer",
+              "label": "t:options.dryer"
+            },
+            {
+              "value": "eye",
+              "label": "t:options.eye"
+            },
+            {
+              "value": "facebook",
+              "label": "t:options.facebook"
+            },
+            {
+              "value": "fire",
+              "label": "t:options.fire"
+            },
+            {
+              "value": "gluten_free",
+              "label": "t:options.gluten_free"
+            },
+            {
+              "value": "heart",
+              "label": "t:options.heart"
+            },
+            {
+              "value": "instagram",
+              "label": "t:options.instagram"
+            },
+            {
+              "value": "iron",
+              "label": "t:options.iron"
+            },
+            {
+              "value": "leaf",
+              "label": "t:options.leaf"
+            },
+            {
+              "value": "leather",
+              "label": "t:options.leather"
+            },
+            {
+              "value": "lightning_bolt",
+              "label": "t:options.lightning_bolt"
+            },
+            {
+              "value": "lipstick",
+              "label": "t:options.lipstick"
+            },
+            {
+              "value": "lock",
+              "label": "t:options.lock"
+            },
+            {
+              "value": "map_pin",
+              "label": "t:options.map_pin"
+            },
+            {
+              "value": "nut_free",
+              "label": "t:options.nut_free"
+            },
+            {
+              "value": "pants",
+              "label": "t:options.pants"
+            },
+            {
+              "value": "paw_print",
+              "label": "t:options.paw_print"
+            },
+            {
+              "value": "pepper",
+              "label": "t:options.pepper"
+            },
+            {
+              "value": "perfume",
+              "label": "t:options.perfume"
+            },
+            {
+              "value": "pinterest",
+              "label": "t:options.pinterest"
+            },
+            {
+              "value": "plane",
+              "label": "t:options.plane"
+            },
+            {
+              "value": "plant",
+              "label": "t:options.plant"
+            },
+            {
+              "value": "plus",
+              "label": "Plus"
+            },
+            {
+              "value": "price_tag",
+              "label": "t:options.price_tag"
+            },
+            {
+              "value": "question_mark",
+              "label": "t:options.question_mark"
+            },
+            {
+              "value": "recycle",
+              "label": "t:options.recycle"
+            },
+            {
+              "value": "return",
+              "label": "t:options.return"
+            },
+            {
+              "value": "ruler",
+              "label": "t:options.ruler"
+            },
+            {
+              "value": "serving_dish",
+              "label": "t:options.serving_dish"
+            },
+            {
+              "value": "shirt",
+              "label": "t:options.shirt"
+            },
+            {
+              "value": "shoe",
+              "label": "t:options.shoe"
+            },
+            {
+              "value": "silhouette",
+              "label": "t:options.silhouette"
+            },
+            {
+              "value": "snapchat",
+              "label": "t:options.snapchat"
+            },
+            {
+              "value": "snowflake",
+              "label": "t:options.snowflake"
+            },
+            {
+              "value": "star",
+              "label": "t:options.star"
+            },
+            {
+              "value": "stopwatch",
+              "label": "t:options.stopwatch"
+            },
+            {
+              "value": "tiktok",
+              "label": "t:options.tiktok"
+            },
+            {
+              "value": "truck",
+              "label": "t:options.truck"
+            },
+            {
+              "value": "tumblr",
+              "label": "t:options.tumblr"
+            },
+            {
+              "value": "twitter",
+              "label": "t:options.twitter"
+            },
+            {
+              "value": "vimeo",
+              "label": "t:options.vimeo"
+            },
+            {
+              "value": "washing",
+              "label": "t:options.washing"
+            }
+          ],
+          "default": "apple",
+          "visible_if": "{{ block.settings.icon_custom == 'none' }}"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Huusk 轻量套装切换"
+    }
+  ]
+}
+{% endschema %}

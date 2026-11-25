@@ -1,0 +1,62 @@
+<div class="cart-mobile-only cart-mobile-header">
+  <div class="cart-mobile-header__bar">
+    <h1 class="cart-mobile-header__title">
+      {{- 'content.your_cart' | t -}}
+      <span class="cart-mobile-header__count" aria-label="{{ 'content.cart_count' | t: count: cart.item_count }}">
+        {{- cart.item_count -}}
+      </span>
+    </h1>
+    <a class="cart-mobile-header__close" href="{{ routes.all_products_collection_url }}" aria-label="{{ 'content.continue_shopping' | t }}">
+      <span class="svg-wrapper" aria-hidden="true">{{ 'icon-close.svg' | inline_asset_content }}</span>
+    </a>
+  </div>
+
+  {%- if cart.item_count > 0 and cart_settings.mobile_offer_label != blank -%}
+    {%- liquid
+      assign paid_quantity = 0
+      for item in cart.items
+        if item.gift_card == false and item.final_line_price > 0
+          assign paid_quantity = paid_quantity | plus: item.quantity
+        endif
+      endfor
+
+      assign required_quantity = cart_settings.mobile_offer_quantity | default: 2
+      assign total_steps = required_quantity | plus: cart_settings.mobile_offer_rewards
+      assign remaining_quantity = required_quantity | minus: paid_quantity
+      assign reached_steps = paid_quantity
+      if remaining_quantity <= 0
+        assign reached_steps = total_steps
+      endif
+      assign progress = reached_steps | times: 100.0 | divided_by: total_steps
+    -%}
+    <div class="cart-mobile-offer">
+      <div class="cart-mobile-offer__badges">
+        <span>{{ cart_settings.mobile_offer_label | escape }}</span>
+        {%- if settings.show_calculator_free_shipping_message -%}
+          <span>
+            <span class="svg-wrapper" aria-hidden="true">{{ 'icon-truck.svg' | inline_asset_content }}</span>
+            {{ 'content.free_shipping_message_4' | t }}
+          </span>
+        {%- endif -%}
+      </div>
+      <p>
+        {%- if remaining_quantity > 0 -%}
+          {{- 'content.mobile_cart.offer_remaining' | t: count: remaining_quantity -}}
+        {%- else -%}
+          {{- 'content.mobile_cart.offer_reached' | t -}}
+        {%- endif -%}
+      </p>
+      <ol class="cart-mobile-offer__steps" style="--cart-offer-progress: {{ progress }}%;" aria-hidden="true">
+        {%- for step in (1..total_steps) -%}
+          <li class="{% if step <= reached_steps %}is-reached{% endif %}{% if step == reached_steps %} is-current{% endif %}{% if step > required_quantity %} is-reward{% endif %}">
+            {%- if step > required_quantity -%}
+              {{- 'content.mobile_cart.reward' | t -}}
+            {%- else -%}
+              {{- step -}}
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ol>
+    </div>
+  {%- endif -%}
+</div>

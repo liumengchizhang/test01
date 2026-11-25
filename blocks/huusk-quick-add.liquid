@@ -1,0 +1,33 @@
+{% liquid
+  assign item = closest.product | default: product
+  assign variant = item.selected_or_first_available_variant
+  assign form_id = 'HuuskQuickAdd-' | append: block.id
+%}
+<div class="huusk-quick-add" {{ block.shopify_attributes }}>
+  {% if item != blank %}
+    {% form 'product', item, id: form_id %}
+      <input type="hidden" name="id" value="{{ variant.id }}">
+      <input type="hidden" name="quantity" value="1">
+      <input type="hidden" name="return_to" value="{{ routes.cart_url }}">
+      <button type="submit" name="add" class="button" {% unless variant.available %}disabled{% endunless %}>
+        {% if variant.available %}{{ block.settings.label | escape }}{% else %}{{ 'products.product.sold_out' | t }}{% endif %}
+      </button>
+    {% endform %}
+  {% endif %}
+</div>
+{% stylesheet %}
+  .huusk-quick-add{width:100%;min-width:0}
+  .huusk-quick-add form{margin:0}
+  .huusk-quick-add .button{width:100%;min-height:48px;cursor:pointer}
+{% endstylesheet %}
+{% schema %}
+{
+  "name":"Huusk 加购按钮",
+  "tag":null,
+  "settings":[
+    {"type":"text","id":"label","label":"按钮文字","default":"ADD TO CART"},
+    {"type":"paragraph","content":"用于商品页面。加入当前页面加载时所选规格的 1 件商品后进入购物车，保留原购物车商品。适合单规格商品。"}
+  ],
+  "presets":[{"name":"Huusk 加购按钮"}]
+}
+{% endschema %}
